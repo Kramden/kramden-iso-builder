@@ -1,0 +1,104 @@
+apt:
+  disable_components: []
+  geoip: true
+  preserve_sources_list: false
+  sources:
+    kramden-team:
+      source: ppa:kramden-team/kramden
+    landscape:
+      source: ppa:landscape/self-hosted-beta
+  primary:
+  - arches:
+    - amd64
+    - i386
+    uri: http://us.archive.ubuntu.com/ubuntu
+  - arches:
+    - default
+    uri: http://ports.ubuntu.com/ubuntu-ports
+codecs:
+  install: true
+drivers:
+  install: true
+identity:
+  hostname: kramden-desktop
+  password: $y$j9T$BHNvj/t/z5eIfjv0EpQd6.$A7RVWbJXS5SC11eXefK08.sW8Kemb6nwasPnFTru6m2
+  realname: Owner
+  username: owner
+keyboard:
+  layout: us
+  toggle: null
+  variant: ''
+locale: en_US.UTF-8
+refresh-installer:
+  update: true
+  channel: stable/ubuntu-23.10
+source:
+  id: ubuntu-desktop-minimal
+  search_drivers: false
+ssh:
+  allow-pw: true
+  authorized-keys: []
+  install-server: false
+timezone: America/New_York
+updates: all
+packages:
+- kramden-overrides
+- gimp
+- scratch
+- ubuntu-restricted-addons
+- ubuntu-restricted-extras
+- landscape-client
+- audacity
+- gcompris-qt
+- gimp
+- inkscape
+- krita
+- openshot-qt
+- google-chrome-stable
+snaps:
+- name: gnome-3-38-2004
+  channel: stable/ubuntu-23.10
+- name: gnome-2048
+  channel: stable
+- name: quadrapassel
+  channel: stable
+- name: gnome-chess
+  channel: stable
+- name: gnome-nibbles
+  channel: stable
+- name: frogsquash
+  channel: stable
+- name: mc-installer
+  channel: stable
+- name: iagno
+  channel: stable
+- name: spotify
+  channel: stable
+- name: gnome-weather
+  channel: stable
+- name: gnome-dictionary
+  channel: stable
+- name: vlc
+  channel: stable
+- name: zoom-client
+  channel: stable
+storage:
+  layout:
+    name: direct
+late-commands:
+- 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
+- chmod 440 /target/etc/sudoers.d/nopw
+- 'mkdir -p /target/home/owner/.local/share/applications'
+- 'cp /target/usr/share/applications/provider-setup.desktop /target/home/owner/.local/share/applications/provider-setup.desktop'
+- 'sed -i.bak -e "s|NoDisplay=true$||g" /target/home/owner/.local/share/applications/provider-setup.desktop'
+- 'mkdir -p /target/home/owner/.config/autostart'
+- 'touch /target/home/owner/.config/gnome-initial-setup-done'
+- 'cp /target/usr/share/applications/provider-setup.desktop /target/home/owner/.config/autostart/'
+- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/owner/.config/autostart/provider-setup.desktop'
+- 'cp -p /target/etc/skel/.bashrc /target/home/owner/'
+- 'cp -p /target/etc/skel/.bash_logout /target/home/owner/'
+- 'cp -p /target/etc/skel/.profile /target/home/owner/'
+- 'cp -rp /target/etc/skel/* /target/home/owner/'
+- 'chown -R 1000:1000 /target/home/owner'
+- 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
+version: 1
