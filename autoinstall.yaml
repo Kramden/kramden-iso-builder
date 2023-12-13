@@ -98,7 +98,6 @@ late-commands:
 - 'cp -p /target/etc/skel/.bashrc /target/home/owner/'
 - 'cp -p /target/etc/skel/.bash_logout /target/home/owner/'
 - 'cp -p /target/etc/skel/.profile /target/home/owner/'
-- 'cp -rp /target/etc/skel/* /target/home/owner/'
 - 'chown -R 1000:1000 /target/home/owner'
 - 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
 version: 1
