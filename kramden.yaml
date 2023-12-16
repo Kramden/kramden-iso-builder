@@ -18,6 +18,5 @@
     - inkscape
     - krita
     - openshot-qt
-- name: add-snap-from-store
-  snap_name: ubuntu-desktop-installer
-  channel: latest/stable/ubuntu-23.10
+    - gir1.2-webkit2-4.1
+    - libfuse2
