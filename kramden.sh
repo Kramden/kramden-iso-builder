@@ -3,7 +3,7 @@
 #
 # Specify verion of kramden-overrides debian package available from
 # https://launchpad.net/~kramden-team/+archive/ubuntu/kramden
-OVERRIDES_VERSION=0.4.90-0mantic1
+OVERRIDES_VERSION=0.4.92-0mantic1
 
 dir=$(dirname $(realpath $0))
 in=$1
@@ -31,7 +31,7 @@ then
     mkdir $dir/debs
 fi
 
-date=$(date "+%Y%m%d-%H:%M")
+date=$(date "+%Y%m%d-%H%M")
 
 # Output file should be kramden-UBUNTUVERSION-DATE-HOUR:MINUTE-ARCH.iso
 out=$(echo "${in//ubuntu/kramden}")
@@ -43,14 +43,16 @@ wget -O $dir/debs/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb https://launc
 
 cd $dir
 echo "Creating $out"
-echo "Running actions defined in kramden.yaml"
-livefs-editor $in out/kramden.iso --action-yaml kramden.yaml
 echo "Adding local debs to pool"
-livefs-editor out/kramden.iso out/kramden2.iso --add-debs-to-pool debs/*.deb
-rm -f out/kramden.iso
+livefs-editor $in out/kramden.iso --add-debs-to-pool debs/*.deb
 echo "Copying in autoinstall.yaml"
-livefs-editor out/kramden2.iso out/kramden3.iso --cp $PWD/autoinstall.yaml new/iso/autoinstall.yaml
+livefs-editor out/kramden.iso out/kramden2.iso --cp $PWD/autoinstall.yaml new/iso/autoinstall.yaml
+rm -f out/kramden.iso
+echo "Running actions defined in kramden.yaml"
+livefs-editor out/kramden2.iso out/kramden3.iso --install-debs debs/*.deb
 rm -f out/kramden2.iso
-mv out/kramden3.iso $out
+livefs-editor out/kramden3.iso out/kramden4.iso --action-yaml kramden.yaml
+rm -f out/kramden3.iso
+mv out/kramden4.iso $out
 
 echo "$out created"
