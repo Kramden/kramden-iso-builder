@@ -1,24 +1,3 @@
-apt:
-  disable_components: []
-  geoip: true
-  preserve_sources_list: false
-  sources:
-    kramden-team:
-      source: ppa:kramden-team/kramden
-    landscape:
-      source: ppa:landscape/self-hosted-beta
-  primary:
-  - arches:
-    - amd64
-    - i386
-    uri: http://us.archive.ubuntu.com/ubuntu
-  - arches:
-    - default
-    uri: http://ports.ubuntu.com/ubuntu-ports
-codecs:
-  install: true
-drivers:
-  install: true
 identity:
   hostname: kramden-desktop
   password: $y$j9T$BHNvj/t/z5eIfjv0EpQd6.$A7RVWbJXS5SC11eXefK08.sW8Kemb6nwasPnFTru6m2
@@ -30,19 +9,16 @@ keyboard:
   variant: ''
 locale: en_US.UTF-8
 refresh-installer:
-  update: true
+  update: false
   channel: stable/ubuntu-23.10
 source:
   id: ubuntu-desktop-minimal
   search_drivers: false
-ssh:
-  allow-pw: true
-  authorized-keys: []
-  install-server: false
-timezone: America/New_York
-updates: all
+codecs:
+  install: true
+drivers:
+  install: true
 packages:
-- kramden-overrides
 - gimp
 - scratch
 - ubuntu-restricted-addons
@@ -55,6 +31,9 @@ packages:
 - krita
 - openshot-qt
 - google-chrome-stable
+- gir1.2-webkit2-4.1
+- libfuse2
+- kramden-overrides
 snaps:
 - name: gnome-3-38-2004
   channel: stable/ubuntu-23.10
@@ -85,9 +64,17 @@ snaps:
 storage:
   layout:
     name: direct
+ssh:
+  allow-pw: true
+  authorized-keys: []
+  install-server: false
+timezone: America/New_York
+updates: all
+early-commands:
+- 'nmcli device wifi connect "Kramden Guest" password iamatkramden name kramden-deployment 2/dev/null || true'
 late-commands:
 - 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
-- chmod 440 /target/etc/sudoers.d/nopw
+- 'chmod 440 /target/etc/sudoers.d/nopw'
 - 'mkdir -p /target/home/owner/.local/share/applications'
 - 'cp /target/usr/share/applications/provider-setup.desktop /target/home/owner/.local/share/applications/provider-setup.desktop'
 - 'sed -i.bak -e "s|NoDisplay=true$||g" /target/home/owner/.local/share/applications/provider-setup.desktop'
@@ -100,4 +87,5 @@ late-commands:
 - 'cp -p /target/etc/skel/.profile /target/home/owner/'
 - 'chown -R 1000:1000 /target/home/owner'
 - 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
+- 'rm -f /target/etc/apt/trusted.gpg.d/custom-iso-key.gpg'
 version: 1
