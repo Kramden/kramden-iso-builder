@@ -71,7 +71,7 @@ ssh:
 timezone: America/New_York
 updates: all
 early-commands:
-- 'nmcli device wifi connect "Kramden Guest" password iamatkramden name kramden-deployment 2/dev/null || true'
+- 'nmcli device wifi connect "Kramden Deploy" password fluffy88circlediagram name kramden-deploy 2/dev/null || true'
 late-commands:
 - 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
 - 'chmod 440 /target/etc/sudoers.d/nopw'
