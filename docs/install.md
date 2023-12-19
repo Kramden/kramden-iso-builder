@@ -45,3 +45,5 @@ After successfully registering the system with landscape, select "Reset" from th
 ![07-reset-and-poweroff.png](images/07-reset-and-poweroff.png)
 
 Click the "Reset" in the middle of the screen, this will do a final reset, prepare the system for the new user, and power off.
+
+**<p align=center>The system is now ready to give!</p>**
