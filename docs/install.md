@@ -10,6 +10,8 @@ Insert USB stick and boot from the USB stick (*F12 at boot on Lenovo devices*)
 
 The installation is completely automated, you don't need to do anything.  At the end of the install the system will reboot.
 
+During the system reboot, ensure it boots off the hard drive and you can remove the USB stick.
+
 On the login screen, select "Owner" and enter the password "kramden" and hit enter
 
 On first boot you will see the Kramden Setup tool
