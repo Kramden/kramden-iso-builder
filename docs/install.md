@@ -10,6 +10,8 @@ Insert USB stick and boot from the USB stick (*F12 at boot on Lenovo devices*)
 
 The installation is completely automated, you don't need to do anything.  At the end of the install the system will reboot.
 
+During the system reboot, ensure it boots off the hard drive and you can remove the USB stick.
+
 On the login screen, select "Owner" and enter the password "kramden" and hit enter
 
 On first boot you will see the Kramden Setup tool
@@ -28,7 +30,7 @@ After successfully setting the "K" number, select "System Info" from the navigat
 
 The System Info screen will provide information necessary to fill out the tracking sheet as well as determine if the system meets the minimum system requirements as well as show the result of the check to ensure the system was installed properly.
 
-Pay specific attention to the "System Check" section at the bottom.  The text should be green to indicate it passed.  If the text is red, the text provided should provide an clear indication of what failed.
+Pay specific attention to the "System Check" section at the bottom.  The text should be green to indicate it passed.  If the text is red, the text provided should provide a clear indication of what failed.
 
 After filling out the tracking sheet and confirming the tests passed, select "Landscape" from the navigation bar on the left
 
