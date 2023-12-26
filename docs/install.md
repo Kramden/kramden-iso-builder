@@ -32,7 +32,14 @@ The System Info screen will provide information necessary to fill out the tracki
 
 Pay specific attention to the "System Check" section at the bottom.  The text should be green to indicate it passed.  If the text is red, the text provided should provide a clear indication of what failed.
 
-After filling out the tracking sheet and confirming the tests passed, select "Landscape" from the navigation bar on the left
+After filling out the tracking sheet and confirming the tests passed, select "Manual tests" from the navigation bar on the left
+
+![test-initial.png](images/test-initial.png)
+This page will list manual tests, complete each test and check them off.
+
+![test-done.png](images/test-done.png)
+
+After completing all the listed tests and they have been checked, select "Landscape" from the navigation bar on the left.
 
 ![landscape.png](images/landscape.png)
 
@@ -44,8 +51,11 @@ After successfully registering with landscape you can move on to system reset.  
 
 After successfully registering the system with landscape, select "Finish" from the navigation bar on the left.
 
+![finish-incomplete.png](images/finish-incomplete.png)
+If any required steps haven't been completed, they will be listed on this screen. Go back and complete these steps.
+
 ![finish-and-poweroff.png](images/finish-and-poweroff.png)
 
-If any required steps haven't been completed, they will be listed on this screen.  If all the required steps are complete, you will be able to click the "Complete" button in the middle of the screen, this will do a final reset, prepare the system for the new user, and power off.
+If all the required steps are complete, you will be able to click the "Complete" button in the middle of the screen, this will do a final reset, prepare the system for the new user, and power off.
 
 **<p align=center>The system is now ready to give!</p>**
