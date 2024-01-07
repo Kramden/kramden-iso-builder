@@ -88,4 +88,5 @@ late-commands:
 - 'chown -R 1000:1000 /target/home/owner'
 - 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
 - 'rm -f /target/etc/apt/trusted.gpg.d/custom-iso-key.gpg'
+- 'cp /cdrom/kramden-iso /target/var/log/installer/kramden-iso'
 version: 1
