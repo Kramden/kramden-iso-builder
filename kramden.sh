@@ -3,7 +3,7 @@
 #
 # Specify verion of kramden-overrides debian package available from
 # https://launchpad.net/~kramden-team/+archive/ubuntu/kramden
-OVERRIDES_VERSION=0.4.95-0mantic1
+OVERRIDES_VERSION=0.4.98-0mantic1
 
 dir=$(dirname $(realpath $0))
 in=$1
@@ -42,17 +42,20 @@ wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/l
 wget -O $dir/debs/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb
 
 cd $dir
+echo $out > kramden-iso
 echo "Creating $out"
 echo "Adding local debs to pool"
 livefs-editor $in out/kramden.iso --add-debs-to-pool debs/*.deb
 echo "Copying in autoinstall.yaml"
 livefs-editor out/kramden.iso out/kramden2.iso --cp $PWD/autoinstall.yaml new/iso/autoinstall.yaml
 rm -f out/kramden.iso
-echo "Running actions defined in kramden.yaml"
-livefs-editor out/kramden2.iso out/kramden3.iso --install-debs debs/*.deb
+livefs-editor out/kramden2.iso out/kramden3.iso --cp $PWD/kramden-iso new/iso/kramden-iso
 rm -f out/kramden2.iso
-livefs-editor out/kramden3.iso out/kramden4.iso --action-yaml kramden.yaml
+echo "Running actions defined in kramden.yaml"
+livefs-editor out/kramden3.iso out/kramden4.iso --install-debs debs/*.deb
 rm -f out/kramden3.iso
-mv out/kramden4.iso $out
+livefs-editor out/kramden4.iso out/kramden5.iso --action-yaml kramden.yaml
+rm -f out/kramden4.iso
+mv out/kramden5.iso $out
 
 echo "$out created"
