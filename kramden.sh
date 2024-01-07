@@ -3,7 +3,7 @@
 #
 # Specify verion of kramden-overrides debian package available from
 # https://launchpad.net/~kramden-team/+archive/ubuntu/kramden
-OVERRIDES_VERSION=0.4.98-0mantic1
+OVERRIDES_VERSION=0.4.99-0mantic1
 
 dir=$(dirname $(realpath $0))
 in=$1
