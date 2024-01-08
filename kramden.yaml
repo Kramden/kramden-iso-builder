@@ -20,3 +20,4 @@
     - openshot-qt
     - gir1.2-webkit2-4.1
     - libfuse2
+    - cheese

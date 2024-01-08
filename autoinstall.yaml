@@ -34,6 +34,7 @@ packages:
 - gir1.2-webkit2-4.1
 - libfuse2
 - kramden-overrides
+- cheese
 snaps:
 - name: gnome-3-38-2004
   channel: stable/ubuntu-23.10
