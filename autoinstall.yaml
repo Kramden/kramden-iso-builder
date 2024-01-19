@@ -3,6 +3,8 @@ identity:
   password: $y$j9T$BHNvj/t/z5eIfjv0EpQd6.$A7RVWbJXS5SC11eXefK08.sW8Kemb6nwasPnFTru6m2
   realname: Owner
   username: owner
+interactive-sections:
+- storage
 keyboard:
   layout: us
   toggle: null
@@ -65,6 +67,8 @@ snaps:
 storage:
   layout:
     name: direct
+    match:
+      size: largest
 ssh:
   allow-pw: true
   authorized-keys: []
