@@ -3,7 +3,7 @@
 #
 # Specify verion of kramden-overrides debian package available from
 # https://launchpad.net/~kramden-team/+archive/ubuntu/kramden
-OVERRIDES_VERSION=0.4.99-0mantic1
+OVERRIDES_VERSION=0.4.101-0mantic1
 
 dir=$(dirname $(realpath $0))
 in=$1
@@ -38,7 +38,7 @@ out=$(echo "${in//ubuntu/kramden}")
 out=$(echo "${out//desktop/$date}")
 
 echo "Fetching local debian packages"
-#wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 wget -O $dir/debs/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb
 
 cd $dir
