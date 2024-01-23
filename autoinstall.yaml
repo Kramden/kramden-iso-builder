@@ -5,6 +5,14 @@ identity:
   username: owner
 interactive-sections:
 - storage
+apt:
+  preserve_sources_list: false
+  mirror-selection:
+    primary:
+      - country-mirror
+      - arches: [i386, amd64]
+        uri: "http://us.archive.ubuntu.com/ubuntu"
+    fallback: abort
 keyboard:
   layout: us
   toggle: null
