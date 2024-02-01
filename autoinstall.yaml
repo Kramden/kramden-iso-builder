@@ -29,35 +29,8 @@ codecs:
 drivers:
   install: true
 packages:
-- gimp
-- scratch
-- ubuntu-restricted-addons
-- ubuntu-restricted-extras
-- landscape-client
-- audacity
-- gcompris-qt
-- gimp
-- inkscape
-- krita
-- openshot-qt
+- kramden-desktop
 - google-chrome-stable
-- gir1.2-webkit2-4.1
-- libfuse2
-- cheese
-- aisleriot
-- gnome-mahjongg
-- gnome-mines
-- gnome-sudoku
-- branding-ubuntu
-- libreoffice-style-yaru
-- libreoffice-gnome
-- libreoffice-writer
-- libreoffice-calc
-- libreoffice-impress
-- libreoffice-math
-- simple-scan
-- shotwell
-- kramden-overrides
 snaps:
 - name: gnome-3-38-2004
   channel: stable/ubuntu-23.10
