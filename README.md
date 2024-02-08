@@ -36,3 +36,5 @@ sudo livefs-editor input.iso output.iso --cp $PWD/autoinstall.yaml new/iso/autoi
 sudo livefs-editor input.iso output.iso --install-debs debs/kramden-overrides*.deb
 sudo livefs-editor input.iso output.iso --add-debs-to-pool debs/*.deb
 ```
+
+Current base ISO is kramden-23.10.1-base-amd64.iso
