@@ -31,33 +31,6 @@ drivers:
 packages:
 - kramden-desktop
 - google-chrome-stable
-snaps:
-- name: gnome-3-38-2004
-  channel: stable/ubuntu-23.10
-- name: gnome-2048
-  channel: stable
-- name: quadrapassel
-  channel: stable
-- name: gnome-chess
-  channel: stable
-- name: gnome-nibbles
-  channel: stable
-- name: frogsquash
-  channel: stable
-- name: mc-installer
-  channel: stable
-- name: iagno
-  channel: stable
-- name: spotify
-  channel: stable
-- name: gnome-weather
-  channel: stable
-- name: gnome-dictionary
-  channel: stable
-- name: vlc
-  channel: stable
-- name: zoom-client
-  channel: stable
 storage:
   layout:
     name: direct

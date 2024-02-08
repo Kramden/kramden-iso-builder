@@ -7,6 +7,7 @@ OVERRIDES_VERSION=0.4.101-0mantic1
 
 dir=$(dirname $(realpath $0))
 in=$1
+
 if [ $UID != 0 ];
 then
 	echo "Must be run with root privileges, for example with sudo"
@@ -35,7 +36,7 @@ date=$(date "+%Y%m%d-%H%M")
 
 # Output file should be kramden-UBUNTUVERSION-DATE-HOUR:MINUTE-ARCH.iso
 out=$(echo "${in//ubuntu/kramden}")
-out=$(echo "${out//desktop/$date}")
+out=$(echo "${out//base/$date}")
 
 echo "Fetching local debian packages"
 wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -43,6 +44,7 @@ wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/l
 
 cd $dir
 echo $out > kramden-iso
+
 echo "Creating $out"
 echo "Adding local debs to pool"
 livefs-editor $in out/kramden.iso --add-debs-to-pool debs/*.deb
@@ -51,11 +53,6 @@ livefs-editor out/kramden.iso out/kramden2.iso --cp $PWD/autoinstall.yaml new/is
 rm -f out/kramden.iso
 livefs-editor out/kramden2.iso out/kramden3.iso --cp $PWD/kramden-iso new/iso/kramden-iso
 rm -f out/kramden2.iso
-echo "Running actions defined in kramden.yaml"
-livefs-editor out/kramden3.iso out/kramden4.iso --install-debs debs/*.deb
-rm -f out/kramden3.iso
-livefs-editor out/kramden4.iso out/kramden5.iso --action-yaml kramden.yaml
-rm -f out/kramden4.iso
-mv out/kramden5.iso $out
+mv out/kramden3.iso $out
 
 echo "$out created"
