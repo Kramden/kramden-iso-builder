@@ -2,7 +2,7 @@
   arg: autoinstall
   persist: false
 - name: add-apt-repository
-  repo: ppa:kramden-team/kramden  
+  repo: ppa:kramden-team/kramden
 - name: add-apt-repository
   repo: ppa:landscape/self-hosted-beta
 - name: add-packages-to-pool
@@ -21,3 +21,6 @@
     - gir1.2-webkit2-4.1
     - libfuse2
     - cheese
+- name: add-snap-from-store
+  snap_name: ubuntu-desktop-installer
+  channel: stable/ubuntu-23.10
