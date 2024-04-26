@@ -1,0 +1,22 @@
+- name: add-cmdline-arg
+  arg: autoinstall
+  persist: false
+- name: add-apt-repository
+  repo: ppa:kramden-team/kramden
+- name: add-apt-repository
+  repo: ppa:landscape/self-hosted-beta
+- name: add-packages-to-pool
+  packages:
+    - gimp
+    - scratch
+    - ubuntu-restricted-addons
+    - ubuntu-restricted-extras
+    - landscape-client
+    - audacity
+    - gcompris-qt
+    - gimp
+    - inkscape
+    - krita
+    - openshot-qt
+    - gir1.2-webkit2-4.1
+    - cheese

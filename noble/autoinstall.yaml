@@ -1,0 +1,76 @@
+identity:
+  hostname: ubuntu-desktop
+  password: $y$j9T$BHNvj/t/z5eIfjv0EpQd6.$A7RVWbJXS5SC11eXefK08.sW8Kemb6nwasPnFTru6m2
+  realname: Owner
+  username: owner
+interactive-sections:
+- storage
+apt:
+  preserve_sources_list: false
+  mirror-selection:
+    primary:
+      - country-mirror
+      - arches: [i386, amd64]
+        uri: "http://us.archive.ubuntu.com/ubuntu"
+    fallback: abort
+keyboard:
+  layout: us
+  toggle: null
+  variant: ''
+locale: en_US.UTF-8
+refresh-installer:
+  update: false
+  channel: stable/ubuntu-24.10
+source:
+  id: ubuntu-desktop-minimal
+  search_drivers: false
+codecs:
+  install: true
+drivers:
+  install: true
+packages:
+- kramden-desktop
+- google-chrome-stable
+storage:
+  layout:
+    name: direct
+    match:
+      size: largest
+ssh:
+  allow-pw: true
+  authorized-keys: []
+  install-server: false
+timezone: America/New_York
+updates: all
+early-commands:
+- 'nmcli device wifi connect "Kramden Deploy" password fluffy88circlediagram name kramden-deploy 2>/dev/null || true'
+late-commands:
+- 'touch /target/etc/hostname'
+- 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
+- 'chmod 440 /target/etc/sudoers.d/nopw'
+- 'mkdir -p /target/home/osload/.config/autostart'
+- 'mkdir -p /target/home/finaltest/.config/autostart'
+- 'touch /target/home/osload/.config/gnome-initial-setup-done'
+- 'touch /target/home/finaltest/.config/gnome-initial-setup-done'
+- 'touch /target/home/osload/.config/kramden-intro-done'
+- 'touch /target/home/finaltest/.config/kramden-intro-done'
+- 'cp /target/usr/share/applications/provider-setup.desktop /target/home/osload/.config/autostart/'
+- 'cp /target/usr/share/applications/provider-setup.desktop /target/home/finaltest/.config/autostart/'
+- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/osload/.config/autostart/provider-setup.desktop'
+- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/finaltest/.config/autostart/provider-setup.desktop'
+- 'cp -p /target/etc/skel/.bashrc /target/home/osload/'
+- 'cp -p /target/etc/skel/.bashrc /target/home/finaltest/'
+- 'cp -p /target/etc/skel/.bash_logout /target/home/osload/'
+- 'cp -p /target/etc/skel/.bash_logout /target/home/finaltest/'
+- 'cp -p /target/etc/skel/.profile /target/home/osload/'
+- 'cp -p /target/etc/skel/.profile /target/home/finaltest/'
+- 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
+- 'rm -f /target/etc/apt/trusted.gpg.d/custom-iso-key.gpg'
+- 'cp /cdrom/kramden-iso /target/var/log/installer/kramden-iso'
+- 'useradd -R /target -m -r -s /bin/bash -u 1010 -U -p pa8wgYiOQwVow -c "1 - OS Load" osload'
+- 'usermod -R /target -aG sudo osload'
+- 'chown -R 1010:1010 /target/home/osload'
+- 'useradd -R /target -m -r -s /bin/bash -u 1011 -U -p pa8wgYiOQwVow -c "2 - Final Test" finaltest'
+- 'usermod -R /target -aG sudo finaltest'
+- 'chown -R 1011:1011 /target/home/finaltest'
+version: 1
