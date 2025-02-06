@@ -3,8 +3,8 @@
 #
 # Specify verion of kramden-overrides debian package available from
 # https://launchpad.net/~kramden-team/+archive/ubuntu/kramden
-DESKTOP_VERSION=0.0.4-ppa1~ubuntu24.04 
-OVERRIDES_VERSION=0.5.2-ppa1~ubuntu24.04 
+DESKTOP_VERSION=0.0.5-ppa1~ubuntu24.04
+OVERRIDES_VERSION=0.5.4-ppa1~ubuntu24.04
 
 dir=$(dirname $(realpath $0))
 in=$1
@@ -48,8 +48,10 @@ cd $dir
 echo $out > kramden-iso
 
 echo "Creating $out"
+echo "Creating base image"
+livefs-editor $in out/base.iso --action-yaml kramden.yaml
 echo "Adding local debs to pool"
-livefs-editor $in out/kramden.iso --add-debs-to-pool debs/*.deb
+livefs-editor out/base.iso out/kramden.iso --add-debs-to-pool debs/*.deb --install-debs debs/kramden-overrides*deb
 echo "Copying in autoinstall.yaml"
 livefs-editor out/kramden.iso out/kramden2.iso --cp $PWD/autoinstall.yaml new/iso/autoinstall.yaml
 rm -f out/kramden.iso

@@ -30,7 +30,33 @@ drivers:
   install: true
 packages:
 - kramden-desktop
+- kramden-overrides
 - google-chrome-stable
+snaps:
+- name: frogsquash
+  channel: stable
+- name: gnome-2048
+  channel: stable
+- name: gnome-chess
+  channel: stable
+- name: gnome-nibbles
+  channel: stable
+- name: gnome-weather
+  channel: stable
+- name: iagno
+  channel: stable
+- name: mc-installer
+  channel: stable
+- name: quadrapassel
+  channel: stable
+- name: screen-test
+  channel: stable
+- name: spotify
+  channel: stable
+- name: vlc
+  channel: stable
+- name: zoom-client
+  channel: stable
 storage:
   layout:
     name: direct
@@ -43,7 +69,7 @@ ssh:
 timezone: America/New_York
 updates: all
 early-commands:
-- 'nmcli device wifi connect "Kramden Deploy" password fluffy88circlediagram name kramden-deploy 2>/dev/null || true'
+- 'nmcli device wifi connect "Kramden Guest" password iamatkramden name kramden-guest 2>/dev/null || true'
 late-commands:
 - 'touch /target/etc/hostname'
 - 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
@@ -67,6 +93,7 @@ late-commands:
 - 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
 - 'rm -f /target/etc/apt/trusted.gpg.d/custom-iso-key.gpg'
 - 'cp /cdrom/kramden-iso /target/var/log/installer/kramden-iso'
+- 'chmod a+rx /target/var/log/installer'
 - 'useradd -R /target -m -r -s /bin/bash -u 1010 -U -p pa8wgYiOQwVow -c "1 - OS Load" osload'
 - 'usermod -R /target -aG sudo osload'
 - 'chown -R 1010:1010 /target/home/osload'
