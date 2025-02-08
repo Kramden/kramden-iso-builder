@@ -30,6 +30,8 @@ drivers:
   install: true
 packages:
 - kramden-desktop
+- kramden-device
+- kramden-provision
 - kramden-overrides
 - google-chrome-stable
 snaps:
@@ -80,10 +82,10 @@ late-commands:
 - 'touch /target/home/finaltest/.config/gnome-initial-setup-done'
 - 'touch /target/home/osload/.config/kramden-intro-done'
 - 'touch /target/home/finaltest/.config/kramden-intro-done'
-- 'cp /target/usr/share/applications/provider-setup.desktop /target/home/osload/.config/autostart/'
-- 'cp /target/usr/share/applications/provider-setup.desktop /target/home/finaltest/.config/autostart/'
-- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/osload/.config/autostart/provider-setup.desktop'
-- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/finaltest/.config/autostart/provider-setup.desktop'
+- 'cp /target/usr/share/applications/kramden-provision-osload.desktop /target/home/osload/.config/autostart/'
+- 'cp /target/usr/share/applications/kramden-provision-finaltest.desktop /target/home/finaltest/.config/autostart/'
+- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/osload/.config/autostart/kramden-provision-osload.desktop'
+- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/finaltest/.config/autostart/kramden-provision-finaltest.desktop'
 - 'cp -p /target/etc/skel/.bashrc /target/home/osload/'
 - 'cp -p /target/etc/skel/.bashrc /target/home/finaltest/'
 - 'cp -p /target/etc/skel/.bash_logout /target/home/osload/'
@@ -100,4 +102,5 @@ late-commands:
 - 'useradd -R /target -m -r -s /bin/bash -u 1011 -U -p pa8wgYiOQwVow -c "2 - Final Test" finaltest'
 - 'usermod -R /target -aG sudo finaltest'
 - 'chown -R 1011:1011 /target/home/finaltest'
+- 'chmod 644 /target/etc/landscape/client.conf'
 version: 1
