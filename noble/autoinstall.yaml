@@ -28,13 +28,32 @@ codecs:
   install: true
 drivers:
   install: true
+kernel:
+  flavor: hwe
 packages:
 - kramden-desktop
 - kramden-device
 - kramden-provision
 - kramden-overrides
 - google-chrome-stable
+#- linux-oem-24.04b
 snaps:
+- name: core18
+  channel: stable
+- name: core20
+  channel: stable
+- name: core22
+  channel: stable
+- name: core24
+  channel: stable
+- name: gnome-3-38-2004
+  channel: stable/ubuntu-24.04
+- name: gnome-42-2204
+  channel: stable/ubuntu-24.04
+- name: gnome-46-2404
+  channel: stable/ubuntu-24.04
+- name: mesa-2404
+  channel: stable/ubuntu-24.04
 - name: frogsquash
   channel: stable
 - name: gnome-2048
@@ -71,7 +90,7 @@ ssh:
 timezone: America/New_York
 updates: all
 early-commands:
-- 'nmcli device wifi connect "Kramden Guest" password iamatkramden name kramden-guest 2>/dev/null || true'
+- 'nmcli device wifi connect "Kramden Deploy" password fluffy88circlediagram name kramden-deploy 2>/dev/null || true'
 late-commands:
 - 'touch /target/etc/hostname'
 - 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
@@ -103,4 +122,6 @@ late-commands:
 - 'usermod -R /target -aG sudo finaltest'
 - 'chown -R 1011:1011 /target/home/finaltest'
 - 'chmod 644 /target/etc/landscape/client.conf'
+- 'echo kernel.apparmor_restrict_unprivileged_unconfined=0 > /target/etc/sysctl.d/99-kramden-local.conf'
+- 'echo kernel.apparmor_restrict_unprivileged_userns=0 >> /target/etc/sysctl.d/99-kramden-local.conf'
 version: 1
