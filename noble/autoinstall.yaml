@@ -124,4 +124,5 @@ late-commands:
 - 'chmod 644 /target/etc/landscape/client.conf'
 - 'echo kernel.apparmor_restrict_unprivileged_unconfined=0 > /target/etc/sysctl.d/99-kramden-local.conf'
 - 'echo kernel.apparmor_restrict_unprivileged_userns=0 >> /target/etc/sysctl.d/99-kramden-local.conf'
+- '/sbin/reboot'
 version: 1
