@@ -9,15 +9,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install livefs-edit
-        run: |
-          git clone https://github.com/mwhudson/livefs-editor
-          cd livefs-editor/
-          python3 -m pip install .
-          cd .
+        uses: actions/checkout@v4
+        with:
+          repository: mwhudson/livefs-editor
+          run: |
+            cd livefs-editor/
+            python3 -m pip install .
       - name: Fetch base ISO
-        run: |
-          curl -O ubuntu-24.04.2-desktop-amd64.iso -sL https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso
-          echo "Ubuntu Desktop Base ISO downloaded" >> $GITHUB_OUTPUT
+        uses: sozo-design/curl@v1.0.2
+        with:
+          args: -O ubuntu-24.04.2-desktop-amd64.iso -sL https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso
       - name: Build Kramden ISO
         run: |
           cd noble
