@@ -14,13 +14,14 @@ jobs:
           cd livefs-editor/
           python3 -m pip install .
       - name: Fetch base ISO
-        uses: sozo-design/curl@v1.0.2
+        id: download
+        uses: mercury233/action-cache-download-file@v1
         with:
-          args: "-O ubuntu-24.04.2-desktop-amd64.iso https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso"
+          url: https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso
       - name: Build Kramden ISO
         run: |
           cd noble
-          ./kramden.sh ubuntu-24.04.2-desktop-amd64.iso
+          ./kramden.sh ${{ steps.download.outputs.filepath }}
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
