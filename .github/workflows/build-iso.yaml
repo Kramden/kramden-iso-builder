@@ -8,12 +8,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install livefs-edit
-        uses: actions/checkout@v4
-        with:
-          repository: mwhudson/livefs-editor
       - name: install livefs-editor
         run: |
+          git clone https://github.com/mwhudson/livefs-editor
           cd livefs-editor/
           python3 -m pip install .
       - name: Fetch base ISO
