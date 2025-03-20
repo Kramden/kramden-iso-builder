@@ -42,23 +42,23 @@ out=$(echo "${out//desktop/$date}")
 
 echo "Fetching local debian packages"
 wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-#wget -O $dir/debs/kramden-desktop_${DESKTOP_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-desktop_${DESKTOP_VERSION}_amd64.deb
-#wget -O $dir/debs/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb
-#wget -O $dir/debs/kramden-device_${PROVISION_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-device_${PROVISION_VERSION}_all.deb
-#wget -O $dir/debs/kramden-provision_${PROVISION_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-provision_${PROVISION_VERSION}_all.deb
+wget -O $dir/debs/kramden-desktop_${DESKTOP_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-desktop_${DESKTOP_VERSION}_amd64.deb
+wget -O $dir/debs/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb
+wget -O $dir/debs/kramden-device_${PROVISION_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-device_${PROVISION_VERSION}_all.deb
+wget -O $dir/debs/kramden-provision_${PROVISION_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-provision_${PROVISION_VERSION}_all.deb
 
 cd $dir
 echo $out > kramden-iso
 
 echo "Creating $out"
 echo "Creating base image"
-livefs-editor $in out/base.iso --action-yaml kramden.yaml
+livefs-edit $in out/base.iso --action-yaml kramden.yaml
 echo "Adding local debs to pool"
-livefs-editor out/base.iso out/kramden.iso --add-debs-to-pool debs/*.deb --install-debs debs/kramden-overrides*deb
+livefs-edit out/base.iso out/kramden.iso --add-debs-to-pool debs/*.deb --install-debs debs/kramden-overrides*deb
 echo "Copying in autoinstall.yaml"
-livefs-editor out/kramden.iso out/kramden2.iso --cp $PWD/autoinstall.yaml new/iso/autoinstall.yaml
+livefs-edit out/kramden.iso out/kramden2.iso --cp $PWD/autoinstall.yaml new/iso/autoinstall.yaml
 rm -f out/kramden.iso
-livefs-editor out/kramden2.iso out/kramden3.iso --cp $PWD/kramden-iso new/iso/kramden-iso
+livefs-edit out/kramden2.iso out/kramden3.iso --cp $PWD/kramden-iso new/iso/kramden-iso
 rm -f out/kramden2.iso
 mv out/kramden3.iso $out
 

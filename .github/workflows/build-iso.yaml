@@ -1,0 +1,29 @@
+name: Build ISO
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install livefs-edit
+        run: |
+          git clone https://github.com/mwhudson/livefs-editor
+          cd livefs-editor/
+          python3 -m pip install .
+          cd .
+      - name: Fetch base ISO
+        run: |
+          curl -O ubuntu-24.04.2-desktop-amd64.iso -sL https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso
+          echo "Ubuntu Desktop Base ISO downloaded" >> $GITHUB_OUTPUT
+      - name: Build Kramden ISO
+        run: |
+          cd noble
+          ./kramden.sh ubuntu-24.04.2-desktop-amd64.iso
+      - name: Save ISO
+        users: actions/upload-artifact@v4
+        with:
+          name: kramden-iso
+          path: kramden*.iso
