@@ -12,6 +12,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: mwhudson/livefs-editor
+      - name: install livefs-editor
           run: |
             cd livefs-editor/
             python3 -m pip install .
