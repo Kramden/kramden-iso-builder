@@ -13,9 +13,9 @@ jobs:
         with:
           repository: mwhudson/livefs-editor
       - name: install livefs-editor
-          run: |
-            cd livefs-editor/
-            python3 -m pip install .
+        run: |
+          cd livefs-editor/
+          python3 -m pip install .
       - name: Fetch base ISO
         uses: sozo-design/curl@v1.0.2
         with:
