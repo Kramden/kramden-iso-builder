@@ -14,9 +14,9 @@ jobs:
           cd livefs-editor/
           python3 -m pip install .
       - name: Fetch base ISO
-        uses: sozo-design/curl@v1.0.2
+        uses: enflo/curl-action@master
         with:
-          args: https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso
+          curl: {{ -O ubuntu-24.04.2-desktop-amd64.iso -sL https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso }}
       - name: Build Kramden ISO
         run: |
           cd noble
