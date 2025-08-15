@@ -26,10 +26,10 @@ jobs:
           cd noble
           echo ${{ github.workspace }}
           echo "list ISO"
-          ls -ltrh ${{ github.workspace }}/${{ steps.download.outputs.filepath }} || true
+          ls -ltrh ${{ steps.download.outputs.filepath }} || true
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
-          #sudo ./kramden.sh ${{ github.workspace }}/${{ steps.download.outputs.filepath }}
+          sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
           mv kramden*.iso ${{ github.workspace }}/
       - name: Save ISO
         uses: actions/upload-artifact@v4
