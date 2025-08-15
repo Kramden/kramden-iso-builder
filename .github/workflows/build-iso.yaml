@@ -25,9 +25,9 @@ jobs:
         run: |
           cd noble
           echo "list ISO"
-          ls -ltrh ${{ steps.download.outputs.filepath }}
+          ls -ltrh ${{ steps.download.outputs.filepath }} || true
           echo "list dir"
-          ls -ltrh ${{ steps.download.outputs.filepath }}../
+          ls -ltrh ${{ steps.download.outputs.filepath }}../ || true
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
       - name: Save ISO
         uses: actions/upload-artifact@v4
