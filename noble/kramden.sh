@@ -5,7 +5,7 @@
 # https://launchpad.net/~kramden-team/+archive/ubuntu/kramden
 DESKTOP_VERSION=0.0.6
 OVERRIDES_VERSION=0.5.7
-PROVISION_VERSION=0.0.9
+PROVISION_VERSION=0.1.2
 
 dir=$(dirname $(realpath $0))
 in=$1
