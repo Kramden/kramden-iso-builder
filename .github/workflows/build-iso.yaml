@@ -17,9 +17,9 @@ jobs:
         id: download
         uses: mercury233/action-cache-download-file@v1
         with:
-          url: 'https://releases.ubuntu.com/24.04.2/ubuntu-24.04.2-desktop-amd64.iso'
+          url: 'https://releases.ubuntu.com/24.04.3/ubuntu-24.04.3-desktop-amd64.iso'
           destination: 'downloads'
-          filename: 'ubuntu-24.04.2-desktop-amd64.iso'
+          filename: 'ubuntu-24.04.3-desktop-amd64.iso'
       - name: Build Kramden ISO
         run: |
           cd noble
