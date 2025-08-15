@@ -24,6 +24,10 @@ jobs:
       - name: Build Kramden ISO
         run: |
           cd noble
+          echo "list ISO"
+          ls -ltrh ${{ steps.download.outputs.filepath }}
+          echo "list dir"
+          ls -ltrh ${{ steps.download.outputs.filepath }}../
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
       - name: Save ISO
         uses: actions/upload-artifact@v4
