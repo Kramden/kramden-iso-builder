@@ -12,7 +12,7 @@ jobs:
         run: |
           git clone https://github.com/mwhudson/livefs-editor
           cd livefs-editor/
-          python3 -m pip install .
+          sudo python3 -m pip install . --break-system-packages
       - name: Fetch base ISO
         id: download
         uses: mercury233/action-cache-download-file@v1.0.0
