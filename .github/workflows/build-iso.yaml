@@ -19,22 +19,20 @@ jobs:
         uses: mercury233/action-cache-download-file@v1.0.0
         with:
           url: 'https://releases.ubuntu.com/24.04.3/ubuntu-24.04.3-desktop-amd64.iso'
-          destination: 'downloads'
+          destination: ${{ github.workspace }}
           filename: 'ubuntu-24.04.3-desktop-amd64.iso'
-        run: |
-          echo "ISOPATH=$PWD" >> $GITHUB_ENV
       - name: Build Kramden ISO
         run: |
           cd noble
-          echo ${{ env.ISOPATH }}
+          echo ${{ github.workspace }}
           echo "list ISO"
-          ls -ltrh ${{ env.ISOPATH }}/${{ steps.download.outputs.filepath }} || true
+          ls -ltrh ${{ github.workspace }}/${{ steps.download.outputs.filepath }} || true
           echo "list dir"
-          ls -ltrh ${{ env.ISOPATH }} || true
-          #sudo ./kramden.sh ${{ env.ISOPATH }}/${{ steps.download.outputs.filepath }}
-          mv kramden*.iso ${{ env.ISOPATH }}/
+          ls -ltrh ${{ github.workspace }} || true
+          #sudo ./kramden.sh ${{ github.workspace }}/${{ steps.download.outputs.filepath }}
+          mv kramden*.iso ${{ github.workspace }}/
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
           name: kramden-iso
-          path: ${{ env.ISOPATH }}/kramden*.iso
+          path: ${{ github.workspace }}/kramden*.iso
