@@ -15,7 +15,7 @@ jobs:
           python3 -m pip install .
       - name: Fetch base ISO
         id: download
-        uses: mercury233/action-cache-download-file@v1
+        uses: mercury233/action-cache-download-file@v1.0.0
         with:
           url: 'https://releases.ubuntu.com/24.04.3/ubuntu-24.04.3-desktop-amd64.iso'
           destination: 'downloads'
