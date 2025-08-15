@@ -21,16 +21,20 @@ jobs:
           url: 'https://releases.ubuntu.com/24.04.3/ubuntu-24.04.3-desktop-amd64.iso'
           destination: 'downloads'
           filename: 'ubuntu-24.04.3-desktop-amd64.iso'
+        run: |
+          echo "ISOPATH=$PWD" >> $GITHUB_ENV
       - name: Build Kramden ISO
         run: |
           cd noble
+          echo ${{ env.ISOPATH }}
           echo "list ISO"
-          ls -ltrh ${{ steps.download.outputs.filepath }} || true
+          ls -ltrh ${{ env.ISOPATH }}/${{ steps.download.outputs.filepath }} || true
           echo "list dir"
-          ls -ltrh ${{ steps.download.outputs.filepath }}../ || true
-          sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
+          ls -ltrh ${{ env.ISOPATH }} || true
+          #sudo ./kramden.sh ${{ env.ISOPATH }}/${{ steps.download.outputs.filepath }}
+          mv kramden*.iso ${{ env.ISOPATH }}/
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
           name: kramden-iso
-          path: kramden*.iso
+          path: ${{ env.ISOPATH }}/kramden*.iso
