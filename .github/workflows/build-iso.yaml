@@ -30,7 +30,6 @@ jobs:
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
-          mv kramden*.iso ${{ github.workspace }}/
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
