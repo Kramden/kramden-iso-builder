@@ -38,3 +38,4 @@ jobs:
         with:
           name: kramden-iso
           path: ${{ github.workspace }}/kramden*.iso
+          retention-days: 5
