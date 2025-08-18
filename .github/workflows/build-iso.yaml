@@ -7,6 +7,12 @@ jobs:
   build-iso:
     runs-on: ubuntu-24.04
     steps:
+      - name: release-vars
+        id: release-vars
+        run: |
+          sudo apt install -y curl jq
+          echo URL=$(echo https://releases.ubuntu.com/$(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:24.04:amd64"].versions["24.04.3"].items.iso.path' | sed 's/\"//g')) >> "$GITHUB_OUTPUT"
+          echo FILENAME=$(echo $(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:24.04:amd64"].versions["24.04.3"].items.iso.path' | sed 's/\"//g' | awk -F / '{print $2}')) >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - name: install livefs-editor
         run: |
@@ -17,9 +23,9 @@ jobs:
         id: download
         uses: mercury233/action-cache-download-file@v1
         with:
-          url: 'https://releases.ubuntu.com/24.04.3/ubuntu-24.04.3-desktop-amd64.iso'
+          url: ${{ steps.release-vars.outputs.URL }}
           destination: 'downloads'
-          filename: 'ubuntu-24.04.3-desktop-amd64.iso'
+          filename: ${{ steps.release-vars.outputs.FILENAME }}
       - name: Build Kramden ISO
         run: |
           sudo apt install -y ubuntu-dev-tools wget
