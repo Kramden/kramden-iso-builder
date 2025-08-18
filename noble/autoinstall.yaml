@@ -20,7 +20,7 @@ keyboard:
 locale: en_US.UTF-8
 refresh-installer:
   update: false
-  channel: stable/ubuntu-24.10
+  channel: stable/ubuntu-24.04
 source:
   id: ubuntu-desktop-minimal
   search_drivers: false
