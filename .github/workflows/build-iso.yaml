@@ -13,26 +13,36 @@ jobs:
           sudo apt install -y curl jq
           echo URL=$(echo https://releases.ubuntu.com/$(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:24.04:amd64"].versions["24.04.3"].items.iso.path' | sed 's/\"//g')) >> "$GITHUB_OUTPUT"
           echo FILENAME=$(echo $(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:24.04:amd64"].versions["24.04.3"].items.iso.path' | sed 's/\"//g' | awk -F / '{print $2}')) >> "$GITHUB_OUTPUT"
+      - uses: jlumbroso/free-disk-space@3e0187054f9c4bc1f55a743792872df36b2d88e0
+        with:
+          tool-cache: true
       - uses: actions/checkout@v4
       - name: install livefs-editor
         run: |
           git clone https://github.com/mwhudson/livefs-editor
           cd livefs-editor/
-          python3 -m pip install .
+          sudo python3 -m pip install . --break-system-packages
+          sudo apt install -y xorriso squashfs-tools python3-debian mount
       - name: Fetch base ISO
         id: download
-        uses: mercury233/action-cache-download-file@v1
+        uses: mercury233/action-cache-download-file@v1.0.0
         with:
           url: ${{ steps.release-vars.outputs.URL }}
-          destination: 'downloads'
+          destination: ${{ github.workspace }}
           filename: ${{ steps.release-vars.outputs.FILENAME }}
       - name: Build Kramden ISO
         run: |
           sudo apt install -y ubuntu-dev-tools wget
           cd noble
-          ./kramden.sh ${{ steps.download.outputs.filepath }}
+          echo ${{ github.workspace }}
+          echo "list ISO"
+          ls -ltrh ${{ steps.download.outputs.filepath }} || true
+          echo "list dir"
+          ls -ltrh ${{ github.workspace }} || true
+          sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
           name: kramden-iso
-          path: kramden*.iso
+          path: ${{ github.workspace }}/kramden*.iso
+          retention-days: 5
