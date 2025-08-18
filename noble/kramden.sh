@@ -1,11 +1,6 @@
 #!/bin/bash
 #
 #
-# Specify verion of kramden-overrides debian package available from
-# https://launchpad.net/~kramden-team/+archive/ubuntu/kramden
-DESKTOP_VERSION=0.0.6
-OVERRIDES_VERSION=0.5.7
-PROVISION_VERSION=0.0.9
 
 dir=$(dirname $(realpath $0))
 in=$1
@@ -41,13 +36,14 @@ out=$(echo "${in//ubuntu/kramden}")
 out=$(echo "${out//desktop/$date}")
 
 echo "Fetching local debian packages"
+rm $dir/debs/*
 wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-wget -O $dir/debs/kramden-desktop_${DESKTOP_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-desktop_${DESKTOP_VERSION}_amd64.deb
-wget -O $dir/debs/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-overrides_${OVERRIDES_VERSION}_amd64.deb
-wget -O $dir/debs/kramden-device_${PROVISION_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-device_${PROVISION_VERSION}_all.deb
-wget -O $dir/debs/kramden-provision_${PROVISION_VERSION}_amd64.deb https://launchpad.net/~kramden-team/+archive/ubuntu/kramden/+files/kramden-provision_${PROVISION_VERSION}_all.deb
+
+cd $dir/debs
+for p in kramden-desktop kramden-overrides kramden-device kramden-provision; do pull-ppa-debs ppa:kramden-team/kramden $p; done
 
 cd $dir
+
 echo $out > kramden-iso
 
 echo "Creating $out"
