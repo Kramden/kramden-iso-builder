@@ -40,9 +40,15 @@ jobs:
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
-      - name: Save ISO
-        uses: actions/upload-artifact@v4
-        with:
-          name: kramden-iso
-          path: ${{ github.workspace }}/kramden*.iso
-          retention-days: 5
+      - name: Upload artifact to Gokapi
+        env:
+          GOKAPI_API_KEY: ${{ secrets.GOKAPI_API_KEY }}
+          GOKAPI_BASE_URL: ${{ secrets.GOKAPI_BASE_URL }}
+        run: |
+          # Example: Using curl to upload a file to Gokapi's API
+          # Adjust the URL and parameters based on Gokapi's API documentation
+          ISO=$(ls -tr ${{ github.workspace }}/kramden-*-amd64.iso | tail -n 1)
+          curl -X POST \
+            -H "Authorization: Bearapi ${GOKAPI_API_KEY}" \
+            -F "file=$ISO" \
+            "${GOKAPI_BASE_URL}/upload"
