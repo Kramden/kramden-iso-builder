@@ -1,4 +1,4 @@
-name: Build ISO
+name: Build ISO and Disk Image
 
 on:
   workflow_dispatch:
@@ -45,4 +45,23 @@ jobs:
         with:
           name: kramden-iso
           path: ${{ github.workspace }}/kramden*.iso
+          retention-days: 5
+  build-image:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Build Kramden Image
+        run: |
+          sudo apt install -y qemu-system-x86 qemu-utils
+          cd noble
+          echo ${{ github.workspace }}
+          echo "list ISO"
+          ls -ltrh ${{ github.workspace }} || true
+          export ISO=$(ls ${{ github.workspace }}*.iso) || true
+          echo $ISO
+          sudo ./autoinstall.sh $ISO kramden.qcow2
+      - name: Save Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kramden-img
+          path: ${{ github.workspace }}/kramden.qcow2
           retention-days: 5
