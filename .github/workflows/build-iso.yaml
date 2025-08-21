@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-iso:
+  build-images:
     runs-on: ubuntu-24.04
     steps:
       - name: release-vars
@@ -46,9 +46,6 @@ jobs:
           name: kramden-iso
           path: ${{ github.workspace }}/kramden*.iso
           retention-days: 5
-  build-image:
-    runs-on: ubuntu-24.04
-    steps:
       - name: Build Kramden Image
         run: |
           sudo apt install -y qemu-system-x86 qemu-utils
