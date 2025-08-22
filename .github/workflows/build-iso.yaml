@@ -50,10 +50,9 @@ jobs:
         run: |
           sudo apt install -y qemu-system-x86 qemu-utils
           cd noble
-          echo ${{ github.workspace }}
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
-          export ISO=$(ls ${{ github.workspace }}*.iso) || true
+          export ISO=$(ls ${{ github.workspace }}/kramden*.iso) || true
           echo $ISO
           sudo ./autoinstall.sh $ISO kramden.qcow2
       - name: Save Image
