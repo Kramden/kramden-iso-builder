@@ -41,8 +41,8 @@ jobs:
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
-          echo RELEASE_NAME=$(ls -t kramden-*.iso | sed 's/.iso//'g | head -n1)>> "$GITHUB_OUTPUT"
-          echo $(ls -t kramden-*.iso | sed 's/.iso//'g | head -n1)
+          echo RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))>> "$GITHUB_OUTPUT"
+          echo $(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
@@ -51,14 +51,18 @@ jobs:
           retention-days: 5
       - name: Build Kramden Image
         run: |
-          sudo apt install -y qemu-system-x86 qemu-utils zstd
+          sudo apt install -y qemu-system-x86 qemu-utils zstd coreutils
           cd noble
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
           export ISO=$(ls ${{ github.workspace }}/kramden*.iso) || true
           echo $ISO
-          sudo ./autoinstall.sh $ISO ${{ github.workspace }}/kramden.img
-          zstd ${{ github.workspace }}/kramden.img
+          export ISO=${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
+          export IMG=${{ steps.build-iso.outputs.RELEASE_NAME }}.img
+          sudo ./autoinstall.sh $ISO ${{ github.workspace }}/$IMG
+          zstd ${{ github.workspace }}/$IMG
+          sha512sum ${{ github.workspace }}/$ISO > ${{ github.workspace }}/$ISO.sha512
+          sha512sum ${{ github.workspace }}/$IMG > ${{ github.workspace }}/$IMG.sha512
           echo "list files"
           ls -ltrh ${{ github.workspace }} || true
       - name: Save Image
@@ -67,13 +71,15 @@ jobs:
           name: kramden-img
           path: ${{ github.workspace }}/kramden.img.zst
           retention-days: 5
-      - name: Upload Multiple Assets (Alternative approach)
+      - name: Create release with ISO and Disk Image
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ steps.build-iso.outputs.RELEASE_NAME }}
           files: |
             ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
-            ${{ github.workspace }}/kramden.img.zst
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso.sha512
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst.sha512
           body: |
             ## ISO
             Suitable for doing a completely automated install of the Customized
@@ -84,4 +90,3 @@ jobs:
             use in qemu or for deployment with FOG
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            prerelease: false
