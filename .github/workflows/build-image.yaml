@@ -40,10 +40,10 @@ jobs:
           ls -ltrh ${{ steps.download.outputs.filepath }} || true
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
-          cd ${{ github.workspace }}
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
           echo RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))>> "$GITHUB_OUTPUT"
           echo $(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
+          cd ${{ github.workspace }}
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
@@ -56,31 +56,31 @@ jobs:
           cd noble
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
-          export ISO=$(ls ${{ github.workspace }}/kramden*.iso) || true
-          echo $ISO
           export ISO=${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
+          echo $ISO
           export IMG=${{ steps.build-iso.outputs.RELEASE_NAME }}.img
-          sudo ./autoinstall.sh $ISO ${{ github.workspace }}/$IMG
-          zstd ${{ github.workspace }}/$IMG
-          sha512sum ${{ github.workspace }}/$ISO > ${{ github.workspace }}/$ISO.sha512
-          sha512sum ${{ github.workspace }}/$IMG > ${{ github.workspace }}/$IMG.sha512
+          echo $IMG
+          sudo ./autoinstall.sh noble/$ISO ${{ github.workspace }}/noble/$IMG
+          zstd ${{ github.workspace }}/noble/$IMG
+          sha512sum ${{ github.workspace }}/noble/$ISO > ${{ github.workspace }}/noble/$ISO.sha512
+          sha512sum ${{ github.workspace }}/noble/$IMG > ${{ github.workspace }}/noble/$IMG.sha512
           echo "list files"
-          ls -ltrh ${{ github.workspace }} || true
+          ls -ltrh ${{ github.workspace }}/noble
       - name: Save Image
         uses: actions/upload-artifact@v4
         with:
           name: kramden-img
-          path: ${{ github.workspace }}/kramden.img.zst
+          path: ${{ github.workspace }}/noble/kramden.img.zst
           retention-days: 5
       - name: Create release with ISO and Disk Image
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ steps.build-iso.outputs.RELEASE_NAME }}
           files: |
-            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
-            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst
-            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso.sha512
-            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst.sha512
+            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
+            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst
+            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso.sha512
+            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst.sha512
           body: |
             ## ISO
             Suitable for doing a completely automated install of the Customized
