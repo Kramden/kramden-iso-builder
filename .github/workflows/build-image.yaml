@@ -31,6 +31,7 @@ jobs:
           destination: ${{ github.workspace }}
           filename: ${{ steps.release-vars.outputs.FILENAME }}
       - name: Build Kramden ISO
+        id: build-iso
         run: |
           sudo apt install -y ubuntu-dev-tools wget
           cd noble
@@ -40,6 +41,8 @@ jobs:
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
+          echo RELEASE_NAME=$(ls -t kramden-*.iso | sed 's/.iso//'g | head -n1)>> "$GITHUB_OUTPUT"
+          echo $(ls -t kramden-*.iso | sed 's/.iso//'g | head -n1)
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
@@ -64,3 +67,21 @@ jobs:
           name: kramden-img
           path: ${{ github.workspace }}/kramden.img.zst
           retention-days: 5
+      - name: Upload Multiple Assets (Alternative approach)
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.build-iso.outputs.RELEASE_NAME }}
+          files: |
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
+            ${{ github.workspace }}/kramden.img.zst
+          body: |
+            ## ISO
+            Suitable for doing a completely automated install of the Customized
+            Kramden build of Ubuntu Desktop
+
+            ## Disk Image
+            Virtual Machine image built with the autoinstall ISO, suitable for
+            use in qemu or for deployment with FOG
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            prerelease: false
