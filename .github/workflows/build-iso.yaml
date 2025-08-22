@@ -54,12 +54,12 @@ jobs:
           ls -ltrh ${{ github.workspace }} || true
           export ISO=$(ls ${{ github.workspace }}/kramden*.iso) || true
           echo $ISO
-          sudo ./autoinstall.sh $ISO ${{ github.workspace }}/kramden.qcow2
+          sudo ./autoinstall.sh $ISO ${{ github.workspace }}/kramden.img
           echo "list files"
           ls -ltrh ${{ github.workspace }} || true
       - name: Save Image
         uses: actions/upload-artifact@v4
         with:
           name: kramden-img
-          path: ${{ github.workspace }}/kramden.qcow2
+          path: ${{ github.workspace }}/kramden.img
           retention-days: 5

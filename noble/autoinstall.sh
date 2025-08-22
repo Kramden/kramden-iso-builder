@@ -11,7 +11,7 @@ source=$1
 target=$2
 
 echo "Creating new disk image $target"
-qemu-img create -f qcow2 -o preallocation=off $target 20G
+qemu-img create -f raw -o preallocation=off $target 20G
 echo "Disk image $target created"
 
 echo "Automated install starting... please wait"
@@ -20,7 +20,7 @@ qemu-system-x86_64 \
             -m 8G \
             -cpu host \
             -smp 8 \
-            -hda $target \
+            -drive file=$target,format=raw,media=disk \
             -cdrom $source \
             -boot d \
             -nographic # Run in headless mode for CI
@@ -31,6 +31,6 @@ qemu-system-x86_64 \
             -m 8G \
             -cpu host \
             -smp 8 \
-            -hda $target \
+            -drive file=$target,format=raw,media=disk \
             -nographic # Run in headless mode for CI
 echo "System image $target is ready to be deployed"
