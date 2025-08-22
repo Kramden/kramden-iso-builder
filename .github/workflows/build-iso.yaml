@@ -48,18 +48,19 @@ jobs:
           retention-days: 5
       - name: Build Kramden Image
         run: |
-          sudo apt install -y qemu-system-x86 qemu-utils
+          sudo apt install -y qemu-system-x86 qemu-utils zstd
           cd noble
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
           export ISO=$(ls ${{ github.workspace }}/kramden*.iso) || true
           echo $ISO
           sudo ./autoinstall.sh $ISO ${{ github.workspace }}/kramden.img
+          zstd ${{ github.workspace }}/kramden.img
           echo "list files"
           ls -ltrh ${{ github.workspace }} || true
       - name: Save Image
         uses: actions/upload-artifact@v4
         with:
           name: kramden-img
-          path: ${{ github.workspace }}/kramden.img
+          path: ${{ github.workspace }}/kramden.img.zst
           retention-days: 5
