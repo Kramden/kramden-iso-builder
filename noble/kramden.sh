@@ -40,7 +40,7 @@ rm $dir/debs/*
 wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 cd $dir/debs
-for p in kramden-desktop kramden-overrides kramden-device kramden-provision; do pull-ppa-debs ppa:kramden-team/kramden-test $p; done
+for p in kramden-desktop kramden-overrides kramden-device kramden-provision; do pull-ppa-debs ppa:kramden-team/kramden $p; done
 
 cd $dir
 
