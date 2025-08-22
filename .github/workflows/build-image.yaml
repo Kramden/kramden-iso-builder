@@ -56,31 +56,32 @@ jobs:
           cd noble
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
-          export ISO=${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
+          export RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
+          export ISO=$RELEASE_NAME.iso
+          export IMG=$RELEASE_NAME.img
           echo $ISO
-          export IMG=${{ steps.build-iso.outputs.RELEASE_NAME }}.img
           echo $IMG
-          sudo ./autoinstall.sh noble/$ISO ${{ github.workspace }}/noble/$IMG
-          zstd ${{ github.workspace }}/noble/$IMG
-          sha512sum ${{ github.workspace }}/noble/$ISO > ${{ github.workspace }}/noble/$ISO.sha512
-          sha512sum ${{ github.workspace }}/noble/$IMG > ${{ github.workspace }}/noble/$IMG.sha512
+          sudo ./autoinstall.sh $ISO ${{ github.workspace }}/$IMG
+          zstd ${{ github.workspace }}/$IMG
+          sha512sum ${{ github.workspace }}/$ISO > ${{ github.workspace }}/$ISO.sha512
+          sha512sum ${{ github.workspace }}/$IMG > ${{ github.workspace }}/$IMG.sha512
           echo "list files"
-          ls -ltrh ${{ github.workspace }}/noble
+          ls -ltrh ${{ github.workspace }}
       - name: Save Image
         uses: actions/upload-artifact@v4
         with:
           name: kramden-img
-          path: ${{ github.workspace }}/noble/kramden.img.zst
+          path: ${{ github.workspace }}/kramden.img.zst
           retention-days: 5
       - name: Create release with ISO and Disk Image
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ steps.build-iso.outputs.RELEASE_NAME }}
           files: |
-            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
-            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst
-            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso.sha512
-            ${{ github.workspace }}/noble/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst.sha512
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.iso.sha512
+            ${{ github.workspace }}/${{ steps.build-iso.outputs.RELEASE_NAME }}.img.zst.sha512
           body: |
             ## ISO
             Suitable for doing a completely automated install of the Customized
