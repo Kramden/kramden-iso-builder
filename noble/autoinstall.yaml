@@ -3,8 +3,6 @@ identity:
   password: $y$j9T$BHNvj/t/z5eIfjv0EpQd6.$A7RVWbJXS5SC11eXefK08.sW8Kemb6nwasPnFTru6m2
   realname: Owner
   username: owner
-interactive-sections:
-- storage
 apt:
   preserve_sources_list: false
   mirror-selection:
@@ -89,8 +87,6 @@ ssh:
   install-server: false
 timezone: America/New_York
 updates: all
-early-commands:
-- 'nmcli device wifi connect "Kramden Deploy" password fluffy88circlediagram name kramden-deploy 2>/dev/null || true'
 late-commands:
 - 'touch /target/etc/hostname'
 - 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
@@ -124,5 +120,6 @@ late-commands:
 - 'chmod 644 /target/etc/landscape/client.conf'
 - 'echo kernel.apparmor_restrict_unprivileged_unconfined=0 > /target/etc/sysctl.d/99-kramden-local.conf'
 - 'echo kernel.apparmor_restrict_unprivileged_userns=0 >> /target/etc/sysctl.d/99-kramden-local.conf'
-- '/sbin/reboot'
+- curtin in-target --target=/target -- /usr/bin/systemctl enable kramden-seeded.service
+- '/sbin/poweroff'
 version: 1
