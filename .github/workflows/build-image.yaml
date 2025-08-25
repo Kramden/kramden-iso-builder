@@ -70,11 +70,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kramden-img
-          path: ${{ github.workspace }}/kramden.img.zst
+          path: ${{ github.workspace }}/kramden*.img.zst
           retention-days: 5
       - name: Create release with ISO and Disk Image
         uses: softprops/action-gh-release@v1
         with:
+          if: startsWith(github.ref, 'refs/tags/')
           name: Release ${{ steps.build-iso.outputs.RELEASE_NAME }}
           files: |
             ${{ github.workspace }}/*.iso
