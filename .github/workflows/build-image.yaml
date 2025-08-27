@@ -62,7 +62,7 @@ jobs:
           echo $IMG
           sudo ./noble/autoinstall.sh $ISO ${{ github.workspace }}/$IMG
           zstd ${{ github.workspace }}/$IMG
-          sha512sum ${{ github.workspace }}/$ISO > ${{ github.workspace }}/$ISO.sha512
+          #sha512sum ${{ github.workspace }}/$ISO > ${{ github.workspace }}/$ISO.sha512
           sha512sum ${{ github.workspace }}/$IMG > ${{ github.workspace }}/$IMG.sha512
           echo "list files"
           ls -ltrh ${{ github.workspace }}
@@ -70,5 +70,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kramden-img
-          path: ${{ github.workspace }}/kramden*.img.zst
+          path: ${{ github.workspace }}/kramden*.img.zst*
           retention-days: 14
