@@ -52,6 +52,7 @@ jobs:
           retention-days: 5
       - name: Build Kramden Image
         run: |
+          sudo apt update --fix-missing
           sudo apt install -y qemu-system-x86 qemu-utils zstd coreutils
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
