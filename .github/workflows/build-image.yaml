@@ -64,7 +64,7 @@ jobs:
           sudo ./noble/autoinstall.sh $ISO ${{ github.workspace }}/$IMG
           zstd ${{ github.workspace }}/$IMG
           #sha512sum ${{ github.workspace }}/$ISO > ${{ github.workspace }}/$ISO.sha512
-          sha512sum ${{ github.workspace }}/$IMG.zstd > ${{ github.workspace }}/$IMG.zstd.sha512
+          sha512sum ${{ github.workspace }}/$IMG.zst > ${{ github.workspace }}/$IMG.zst.sha512
           echo "list files"
           ls -ltrh ${{ github.workspace }}
       - name: Save Image
