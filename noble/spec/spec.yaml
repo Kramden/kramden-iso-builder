@@ -1,0 +1,5 @@
+- name: add-apt-repository
+  repo: ppa:kramden-team/kramden
+- name: install-packages
+  packages:
+    - guvcview
