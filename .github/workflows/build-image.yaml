@@ -58,17 +58,17 @@ jobs:
           ls -ltrh ${{ github.workspace }} || true
           export RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
           export ISO=$RELEASE_NAME.iso
-          export IMG=$RELEASE_NAME.img
+          export IMG=$RELEASE_NAME.qcow2
           echo $ISO
           echo $IMG
           sudo ./noble/autoinstall.sh $ISO ${{ github.workspace }}/$IMG
           zstd ${{ github.workspace }}/$IMG
           sha512sum $IMG.zst > ${{ github.workspace }}/$IMG.zst.sha512
           echo "list files"
-          ls -ltrh ${{ github.workspace }}
+          ls -ltrh ${{ github.workspace }} || true
       - name: Save Image
         uses: actions/upload-artifact@v4
         with:
           name: kramden-img
-          path: ${{ github.workspace }}/kramden*.img.*
-          retention-days: 14
+          path: ${{ github.workspace }}/kramden*.qcow2.*
+          retention-days: 5
