@@ -22,6 +22,7 @@ jobs:
           git clone https://github.com/mwhudson/livefs-editor
           cd livefs-editor/
           sudo python3 -m pip install . --break-system-packages
+          sudo apt update --fix-missing
           sudo apt install -y xorriso squashfs-tools python3-debian mount
       - name: Fetch base ISO
         id: download
