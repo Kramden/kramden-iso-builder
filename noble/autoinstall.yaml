@@ -10,7 +10,6 @@ apt:
       - country-mirror
       - uri: "http://us.archive.ubuntu.com/ubuntu"
       - uri: "http://archive.ubuntu.com/ubuntu"
-      - uri: "http://se.archive.ubuntu.com/ubuntu"
     geoip: true
     fallback: abort
 keyboard:
