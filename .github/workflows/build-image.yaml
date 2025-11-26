@@ -1,6 +1,9 @@
 name: Build ISO and Disk Image
 
 on:
+  schedule:
+    # Every day at 2am
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:
