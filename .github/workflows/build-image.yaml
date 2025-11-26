@@ -2,8 +2,8 @@ name: Build ISO and Disk Image
 
 on:
   schedule:
-    # Every day at 2am
-    - cron: '0 2 * * *'
+    # Every Saturday at 2am
+    - cron: '0 2 * * 6'
   workflow_dispatch:
 
 jobs:
