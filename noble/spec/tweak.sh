@@ -11,6 +11,8 @@ rm new/minimal.standard.live/var/lib/snapd/seed/seed.yaml
 cp /snap/screen-test/current/usr/bin/screen-test new/minimal.standard.live/usr/bin/
 rm -rf new/minimal.standard.live/var/{cache,lib}/snapd new/minimal.standard.live/snap new/minimal.standard.live/etc/systemd/system/*snap*
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
+sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
+sed -i 's/30/3/g' new/iso/boot/grub/grub.cfg
 
 ############################ Second Run ############################################
 rm new/minimal/var/lib/snapd/desktop/applications/ubuntu-desktop-bootstrap_ubuntu-desktop-bootstrap.desktop
@@ -26,10 +28,12 @@ rm -rf new/minimal/usr/share/locale-langpack
 rm new/minimal/etc/xdg/autostart/org.kramden.device.desktop
 echo kernel.apparmor_restrict_unprivileged_unconfined=0 > new/minimal/etc/sysctl.d/99-kramden-local.conf
 echo kernel.apparmor_restrict_unprivileged_userns=0 >> new/minimal/etc/sysctl.d/99-kramden-local.conf
+sed -i 's|google-chrome|firefox|g' new/minimal/usr/share/glib-2.0/schemas/99*
+glib-compile-schemas new/minimal/usr/share/glib-2.0/schemas
 
 ############################ Third Run ############################################
 #sed -i 's/google-chrome-stable/google-chrome-stable --password-store=basic/g' new/minimal.standard.live.custom/usr/share/applications/google-chrome.desktop
-sed -i 's|"\$@"$|"\$@" "--password-store=basic"|g' new/minimal.standard.live.custom/opt/google/chrome/google-chrome
+#sed -i 's|"\$@"$|"\$@" "--password-store=basic"|g' new/minimal.standard.live.custom/opt/google/chrome/google-chrome
 mkdir -p new/minimal.standard.live.custom/etc/xdg/autostart
 cat << 'EOF' > new/minimal.standard.live.custom/etc/xdg/autostart/org.kramden.wifi.desktop
 [Desktop Entry]
@@ -47,7 +51,7 @@ EOF
 
 cat << 'EOF' > new/minimal.standard.live.custom/usr/bin/wifi.sh
 #!/bin/bash
-nmcli device wifi connect "Kramden Guest" password REPLACEMENT name kramden-guest 2>/dev/null || true
+nmcli device wifi connect "Kramden Guest" password iamatkramden name kramden-guest 2>/dev/null || true
 EOF
 chmod a+x new/minimal.standard.live.custom/usr/bin/wifi.sh
 
