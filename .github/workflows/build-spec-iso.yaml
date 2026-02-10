@@ -1,0 +1,59 @@
+name: Build Spec ISO
+
+on:
+  schedule:
+    # Every Saturday at 2am
+    - cron: '0 5 * * 6'
+  workflow_dispatch:
+
+jobs:
+  build-images:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: release-vars
+        id: release-vars
+        run: |
+          sudo apt install -y curl jq
+          echo URL=$(echo https://releases.ubuntu.com/$(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:24.04:amd64"].versions["24.04.3"].items.iso.path' | sed 's/\"//g')) >> "$GITHUB_OUTPUT"
+          echo FILENAME=$(echo $(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:24.04:amd64"].versions["24.04.3"].items.iso.path' | sed 's/\"//g' | awk -F / '{print $2}')) >> "$GITHUB_OUTPUT"
+      - uses: jlumbroso/free-disk-space@3e0187054f9c4bc1f55a743792872df36b2d88e0
+        with:
+          tool-cache: true
+      - uses: actions/checkout@v4
+      - name: install livefs-editor
+        run: |
+          git clone https://github.com/mwhudson/livefs-editor
+          cd livefs-editor/
+          sudo python3 -m pip install . --break-system-packages
+          sudo apt update --fix-missing
+          sudo apt install -y xorriso squashfs-tools python3-debian mount
+      - name: Fetch base ISO
+        id: download
+        uses: mercury233/action-cache-download-file@v1.0.0
+        with:
+          url: ${{ steps.release-vars.outputs.URL }}
+          destination: ${{ github.workspace }}
+          filename: ${{ steps.release-vars.outputs.FILENAME }}
+      - name: Build Kramden ISO
+        id: build-iso
+        env:                                                                      
+          SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}            
+          KRAMDEN_GUEST_WIFI: ${{ secrets.KRAMDEN_GUEST_WIFI }}            
+        run: |
+          sudo apt install -y ubuntu-dev-tools wget
+          cd noble
+          echo ${{ github.workspace }}
+          echo "list ISO"
+          ls -ltrh ${{ steps.download.outputs.filepath }} || true
+          echo "list dir"
+          ls -ltrh ${{ github.workspace }} || true
+          sudo ./spec2.sh ${{ steps.download.outputs.filepath }}
+          echo RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))>> "$GITHUB_OUTPUT"
+          echo $(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
+          cd ${{ github.workspace }}
+      - name: Save ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: kramden-iso
+          path: ${{ github.workspace }}/kramden*.iso
+          retention-days: 5
