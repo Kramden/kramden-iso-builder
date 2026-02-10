@@ -47,7 +47,7 @@ jobs:
           ls -ltrh ${{ steps.download.outputs.filepath }} || true
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
-          sudo ./spec2.sh ${{ steps.download.outputs.filepath }}
+          sudo -E ./spec2.sh ${{ steps.download.outputs.filepath }}
           echo RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))>> "$GITHUB_OUTPUT"
           echo $(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
           cd ${{ github.workspace }}

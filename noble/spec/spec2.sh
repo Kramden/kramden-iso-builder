@@ -17,6 +17,11 @@ then
 	exit
 fi
 
+if [ -z "$SORTLY_API_KEY" ]; then
+    echo "ERROR: SORTLY_API_KEY is not set!"
+    exit 1
+fi
+
 if [ -d $dir/out ];
 then
     rm $dir/out/* 2>/dev/null
@@ -53,10 +58,10 @@ livefs-edit out/spec0.iso out/spec1.iso --install-debs debs/{srvadmin*,command*,
 rm -f out/spec0.iso
 livefs-edit out/spec1.iso out/spec2.iso --cp $PWD/kramden-spec-iso new/iso/kramden-spec-iso
 rm -f out/spec1.iso
-sudo livefs-editor out/spec2.iso out/spec3.iso --edit-squashfs minimal.standard.live false --shell $dir/tweak1.sh
+livefs-editor out/spec2.iso out/spec3.iso --edit-squashfs minimal.standard.live false --shell $dir/tweak1.sh
 rm -f out/spec2.iso
-sudo livefs-editor out/spec3.iso out/spec4.iso --edit-squashfs minimal false --shell $dir/tweak2.sh
-sudo livefs-editor out/spec4.iso out/spec5.iso --edit-squashfs minimal.standard.live.custom false --shell $dir/tweak3.sh
+livefs-editor out/spec3.iso out/spec4.iso --edit-squashfs minimal false --shell $dir/tweak2.sh
+livefs-editor out/spec4.iso out/spec5.iso --edit-squashfs minimal.standard.live.custom false --shell $dir/tweak3.sh
 rm -f out/spec4.iso
 mv out/spec5.iso $out
 
