@@ -28,8 +28,6 @@ rm -rf new/minimal/usr/share/locale-langpack
 rm new/minimal/etc/xdg/autostart/org.kramden.device.desktop
 echo kernel.apparmor_restrict_unprivileged_unconfined=0 > new/minimal/etc/sysctl.d/99-kramden-local.conf
 echo kernel.apparmor_restrict_unprivileged_userns=0 >> new/minimal/etc/sysctl.d/99-kramden-local.conf
-sed -i 's|google-chrome|firefox|g' new/minimal/usr/share/glib-2.0/schemas/99*
-glib-compile-schemas new/minimal/usr/share/glib-2.0/schemas
 
 ############################ Third Run ############################################
 #sed -i 's/google-chrome-stable/google-chrome-stable --password-store=basic/g' new/minimal.standard.live.custom/usr/share/applications/google-chrome.desktop
@@ -52,6 +50,7 @@ EOF
 cat << 'EOF' > new/minimal.standard.live.custom/usr/bin/wifi.sh
 #!/bin/bash
 nmcli device wifi connect "Kramden Guest" password iamatkramden name kramden-guest 2>/dev/null || true
+nmcli device wifi connect "posey" password snickers name posey 2>/dev/null || true
 EOF
 chmod a+x new/minimal.standard.live.custom/usr/bin/wifi.sh
 
@@ -61,3 +60,5 @@ echo "Running asset.sh" >> /var/log/rc_local
 /usr/share/kramden-provision/scripts/asset.sh >> /var/log/rc_local
 EOF
 chmod a+x new/minimal.standard.live.custom/etc/rc.local
+mkdir -p new/minimal.standard.live.custom/etc/environment.d
+echo "SORTLY_API_KEY=sk_sortly_FAXkCyGsiD-9AEV16yaW" >> new/minimal.standard.live.custom/etc/environment
