@@ -22,6 +22,11 @@ if [ -z "$SORTLY_API_KEY" ]; then
     exit 1
 fi
 
+if [ -z "$KRAMDEN_GUEST_WIFI" ]; then
+    echo "ERROR: KRAMDEN_GUEST_WIFI is not set!"
+    exit 1
+fi
+
 if [ -d $dir/out ];
 then
     rm $dir/out/* 2>/dev/null
