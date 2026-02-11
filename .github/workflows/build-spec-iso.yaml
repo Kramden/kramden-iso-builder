@@ -1,9 +1,6 @@
 name: Build Kramden Spec ISO
 
 on:
-  schedule:
-    # Every Saturday at 2am
-    - cron: '0 5 * * 6'
   workflow_dispatch:
 
 jobs:
