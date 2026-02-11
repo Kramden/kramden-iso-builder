@@ -10,7 +10,8 @@ rm new/minimal.standard.live/snap/bin/*
 rm -rf new/minimal.standard.live/var/snap/ubuntu-desktop-bootstrap
 rm new/{minimal.standard.live/var/lib/snapd/snaps/ubuntu-desktop-bootstrap*.snap,minimal.standard.live/var/lib/snapd/seed/snaps/ubuntu-desktop-bootstrap*.snap,minimal.standard.live/etc/systemd/system/*bootstrap*}
 rm new/minimal.standard.live/var/lib/snapd/seed/seed.yaml
-cp /snap/screen-test/current/usr/bin/screen-test new/minimal.standard.live/usr/bin/
+wget -O new/minimal.standard.live/usr/bin/screen-test https://github.com/kenvandine/screen-test/releases/download/0.2/screen-test
+chmod a+x new/minimal.standard.live/usr/bin/screen-test
 rm -rf new/minimal.standard.live/var/{cache,lib}/snapd new/minimal.standard.live/snap new/minimal.standard.live/etc/systemd/system/*snap*
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
