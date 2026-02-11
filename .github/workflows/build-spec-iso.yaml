@@ -1,4 +1,4 @@
-name: Build Spec ISO
+name: Build Kramden Spec ISO
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-images:
+  build-image:
     runs-on: ubuntu-24.04
     steps:
       - name: release-vars
@@ -34,7 +34,7 @@ jobs:
           url: ${{ steps.release-vars.outputs.URL }}
           destination: ${{ github.workspace }}
           filename: ${{ steps.release-vars.outputs.FILENAME }}
-      - name: Build Kramden ISO
+      - name: Build Kramden Spec ISO
         id: build-iso
         env:                                                                      
           SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}            
