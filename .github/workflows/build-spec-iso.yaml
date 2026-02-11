@@ -54,6 +54,6 @@ jobs:
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
-          name: kramden-iso
+          name: kramden-spec-iso
           path: ${{ github.workspace }}/kramden*.iso
           retention-days: 5
