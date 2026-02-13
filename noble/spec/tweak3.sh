@@ -4,6 +4,8 @@
 ############################ Third Run ############################################
 #sed -i 's/google-chrome-stable/google-chrome-stable --password-store=basic/g' new/minimal.standard.live.custom/usr/share/applications/google-chrome.desktop
 #sed -i 's|"\$@"$|"\$@" "--password-store=basic"|g' new/minimal.standard.live.custom/opt/google/chrome/google-chrome
+rm -f new/*/etc/xdg/autostart/update-notifier.desktop
+sed -i 's/1/0/g' new/*/etc/apt/apt.conf.d/20auto-upgrades
 mkdir -p new/minimal.standard.live.custom/etc/xdg/autostart
 cat << 'EOF' > new/minimal.standard.live.custom/etc/xdg/autostart/org.kramden.wifi.desktop
 [Desktop Entry]
