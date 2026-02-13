@@ -16,4 +16,3 @@ rm -rf new/minimal.standard.live/var/{cache,lib}/snapd new/minimal.standard.live
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/30/3/g' new/iso/boot/grub/grub.cfg
-sed -i 's/1/0/g' new/*/etc/apt/apt.conf.d/20auto-upgrades
