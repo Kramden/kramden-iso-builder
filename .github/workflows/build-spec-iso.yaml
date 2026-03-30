@@ -38,7 +38,7 @@ jobs:
           KRAMDEN_GUEST_WIFI: ${{ secrets.KRAMDEN_GUEST_WIFI }}            
         run: |
           sudo apt install -y ubuntu-dev-tools wget
-          cd noble/spec
+          cd resolute/spec
           echo ${{ github.workspace }}
           echo "list ISO"
           ls -ltrh ${{ steps.download.outputs.filepath }} || true

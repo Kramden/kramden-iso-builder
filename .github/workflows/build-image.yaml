@@ -40,7 +40,7 @@ jobs:
           SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}            
         run: |
           sudo apt install -y ubuntu-dev-tools wget
-          cd noble
+          cd resolute
           echo ${{ github.workspace }}
           echo "list ISO"
           ls -ltrh ${{ steps.download.outputs.filepath }} || true
@@ -68,7 +68,7 @@ jobs:
           export IMG=$RELEASE_NAME.qcow2
           echo $ISO
           echo $IMG
-          sudo ./noble/autoinstall.sh $ISO ${{ github.workspace }}/$IMG
+          sudo ./resolute/autoinstall.sh $ISO ${{ github.workspace }}/$IMG
           zstd ${{ github.workspace }}/$IMG
           sha512sum $IMG.zst > ${{ github.workspace }}/$IMG.zst.sha512
           echo "list files"
