@@ -1,0 +1,123 @@
+identity:
+  hostname: ubuntu-desktop
+  password: $y$j9T$BHNvj/t/z5eIfjv0EpQd6.$A7RVWbJXS5SC11eXefK08.sW8Kemb6nwasPnFTru6m2
+  realname: Owner
+  username: owner
+apt:
+  preserve_sources_list: false
+  mirror-selection:
+    primary:
+      - country-mirror
+      - uri: "http://us.archive.ubuntu.com/ubuntu"
+      - uri: "http://archive.ubuntu.com/ubuntu"
+    geoip: true
+    fallback: abort
+keyboard:
+  layout: us
+  toggle: null
+  variant: ''
+locale: en_US.UTF-8
+refresh-installer:
+  update: false
+  channel: stable/ubuntu-26.04
+source:
+  id: ubuntu-desktop-minimal
+  search_drivers: false
+codecs:
+  install: true
+drivers:
+  install: true
+kernel:
+  flavor: hwe
+packages:
+- kramden-desktop
+- kramden-device
+- kramden-provision
+- kramden-overrides
+- google-chrome-stable
+snaps:
+- name: core18
+  channel: stable
+- name: core22
+  channel: stable
+- name: core24
+  channel: stable
+- name: gnome-42-2204
+  channel: stable/ubuntu-24.04
+- name: gnome-46-2404
+  channel: stable/ubuntu-24.04
+- name: mesa-2404
+  channel: stable/ubuntu-24.04
+- name: frogsquash
+  channel: stable
+- name: gnome-2048
+  channel: stable
+- name: gnome-chess
+  channel: stable
+- name: gnome-nibbles
+  channel: stable
+- name: gnome-weather
+  channel: stable
+- name: iagno
+  channel: stable
+- name: mc-installer
+  channel: stable
+- name: quadrapassel
+  channel: stable
+- name: screen-test
+  channel: stable
+- name: spotify
+  channel: stable
+- name: vlc
+  channel: stable
+- name: zoom-client
+  channel: stable
+storage:
+  layout:
+    name: direct
+    match:
+      size: largest
+ssh:
+  allow-pw: true
+  authorized-keys: []
+  install-server: false
+timezone: America/New_York
+updates: all
+late-commands:
+- 'touch /target/etc/hostname'
+- 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
+- 'chmod 440 /target/etc/sudoers.d/nopw'
+- 'mkdir -p /target/home/osload/.config/autostart'
+- 'mkdir -p /target/home/finaltest/.config/autostart'
+- 'touch /target/home/osload/.config/gnome-initial-setup-done'
+- 'touch /target/home/finaltest/.config/gnome-initial-setup-done'
+- 'touch /target/home/osload/.config/kramden-intro-done'
+- 'touch /target/home/finaltest/.config/kramden-intro-done'
+- 'cp /target/usr/share/applications/org.kramden.provision-osload.desktop /target/home/osload/.config/autostart/'
+- 'cp /target/usr/share/applications/org.kramden.provision-finaltest.desktop /target/home/finaltest/.config/autostart/'
+- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/osload/.config/autostart/org.kramden.provision-osload.desktop'
+- 'echo "X-GNOME-Autostart-enabled=true" >> /target/home/finaltest/.config/autostart/org.kramden.provision-finaltest.desktop'
+- 'cp -p /target/etc/skel/.bashrc /target/home/osload/'
+- 'cp -p /target/etc/skel/.bashrc /target/home/finaltest/'
+- 'cp -p /target/etc/skel/.bash_logout /target/home/osload/'
+- 'cp -p /target/etc/skel/.bash_logout /target/home/finaltest/'
+- 'cp -p /target/etc/skel/.profile /target/home/osload/'
+- 'cp -p /target/etc/skel/.profile /target/home/finaltest/'
+- 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
+- 'rm -f /target/etc/apt/trusted.gpg.d/custom-iso-key.gpg'
+- 'cp /cdrom/kramden-iso /target/var/log/installer/kramden-iso'
+- 'chmod a+rx /target/var/log/installer'
+- 'useradd -R /target -m -r -s /bin/bash -u 1010 -U -p pa8wgYiOQwVow -c "1 - OS Load" osload'
+- 'usermod -R /target -aG sudo osload'
+- 'echo "export SORTLY_API_KEY=@@SORTLY_API_KEY@@" >> /target/home/osload/.bash_profile'
+- 'chown -R 1010:1010 /target/home/osload'
+- 'useradd -R /target -m -r -s /bin/bash -u 1011 -U -p pa8wgYiOQwVow -c "2 - Final Test" finaltest'
+- 'usermod -R /target -aG sudo finaltest'
+- 'echo "export SORTLY_API_KEY=@@SORTLY_API_KEY@@" >> /target/home/finaltest/.bash_profile'
+- 'chown -R 1011:1011 /target/home/finaltest'
+- 'chmod 644 /target/etc/landscape/client.conf'
+- 'echo kernel.apparmor_restrict_unprivileged_unconfined=0 > /target/etc/sysctl.d/99-kramden-local.conf'
+- 'echo kernel.apparmor_restrict_unprivileged_userns=0 >> /target/etc/sysctl.d/99-kramden-local.conf'
+- curtin in-target --target=/target -- /usr/bin/systemctl enable kramden-seeded.service
+- '/sbin/poweroff'
+version: 1
