@@ -7,14 +7,14 @@ import json
 # --- CONFIGURATION ---
 GH_REPO = "Kramden/kramden-iso-builder"
 GH_WORKFLOW = "build-image.yaml"
-GH_TOKEN = "your_github_read_only_token"
+GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = "999"
 STORAGE = "local-lvm"
 
 FOG_URL = "http://your-fog-ip/fog"
-FOG_API_TOKEN = "your_global_token"
-FOG_USER_TOKEN = "your_user_token"
+FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
+FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
 VM_MAC = "AA:BB:CC:DD:EE:FF"
 
 HEADERS = {

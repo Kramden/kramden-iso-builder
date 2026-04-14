@@ -20,16 +20,18 @@ Before running `fog_auto_deploy.py`, update the configuration block at the top o
 ```python
 GH_REPO = "Kramden/kramden-iso-builder"
 GH_WORKFLOW = "build-image.yaml"
-GH_TOKEN = "your_github_read_only_token"
+GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = "999"
 STORAGE = "local-lvm"
 
 FOG_URL = "http://your-fog-ip/fog"
-FOG_API_TOKEN = "your_global_token"
-FOG_USER_TOKEN = "your_user_token"
+FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
+FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
 VM_MAC = "AA:BB:CC:DD:EE:FF"
 ```
+
+The token values can stay in the script, but the script now prefers environment variables when they are set.
 
 ### Configuration values
 
@@ -37,12 +39,12 @@ VM_MAC = "AA:BB:CC:DD:EE:FF"
 | --- | --- |
 | `GH_REPO` | GitHub repository that publishes the build artifact |
 | `GH_WORKFLOW` | Workflow file to inspect for successful runs |
-| `GH_TOKEN` | Fine-grained GitHub token used to download the artifact |
+| `GH_TOKEN` | Fine-grained GitHub token used to download the artifact; can be supplied with the `GH_TOKEN` environment variable |
 | `VM_ID` | Proxmox VM ID for the golden VM |
 | `STORAGE` | Proxmox storage target used by `qm disk import` |
 | `FOG_URL` | Base URL of the FOG instance |
-| `FOG_API_TOKEN` | FOG global API token |
-| `FOG_USER_TOKEN` | FOG user API token |
+| `FOG_API_TOKEN` | FOG global API token; can be supplied with the `FOG_API_TOKEN` environment variable |
+| `FOG_USER_TOKEN` | FOG user API token; can be supplied with the `FOG_USER_TOKEN` environment variable |
 | `VM_MAC` | MAC address of the host record in FOG that should receive the image assignment |
 
 ## Prerequisites
@@ -70,7 +72,7 @@ Create a **fine-grained personal access token** with read-only access to the `Kr
 1. Go to **GitHub Settings > Developer settings > Personal access tokens > Fine-grained tokens**.
 2. Grant repository access to `Kramden/kramden-iso-builder`.
 3. Set **Actions: Read** and **Metadata: Read**.
-4. Paste the token into `GH_TOKEN`.
+4. Provide it either by exporting `GH_TOKEN` or by editing the fallback value in the script.
 
 ### FOG tokens
 
@@ -78,6 +80,17 @@ You need both FOG API tokens:
 
 1. **Global token:** In FOG, go to **FOG Configuration > FOG Settings > API System**, enable the API if needed, and copy `FOG_API_TOKEN`.
 2. **User token:** In FOG, go to **User Management > [Your User] > API Settings**, ensure API access is enabled for the user, and copy `FOG_USER_TOKEN`.
+
+### Recommended environment variable setup
+
+Export the tokens before running the script:
+
+```bash
+export GH_TOKEN="your_github_read_only_token"
+export FOG_API_TOKEN="your_global_token"
+export FOG_USER_TOKEN="your_user_token"
+python3 fog_auto_deploy.py
+```
 
 ## How to run it
 
