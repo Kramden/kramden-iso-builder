@@ -141,14 +141,18 @@ def get_latest_artifact():
         (
             artifact
             for artifact in artifacts
-            if artifact.get("name", "").endswith(".qcow2.zst")
+            if artifact.get("name") == "kramden-img"
             and not artifact.get("expired", False)
         ),
         None,
     )
     if target is None:
+        available = [
+            f"{a.get('name')} (expired={a.get('expired')})" for a in artifacts
+        ]
         raise RuntimeError(
-            f"No non-expired .qcow2.zst artifact was found for run {run['id']}."
+            f"No non-expired 'kramden-img' artifact was found for run {run['id']}. "
+            f"Available artifacts: {available}"
         )
 
     download_url = target.get("archive_download_url") or target.get("download_url")
