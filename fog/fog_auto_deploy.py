@@ -50,7 +50,7 @@ def validate_config():
         "FOG_API_TOKEN": "your_global_token",
         "FOG_USER_TOKEN": "your_user_token",
         "FOG_URL": "http://your-fog-ip/fog",
-        "VM_MAC": "bc:24:11:83:52:e0",
+        "VM_MAC": "AA:BB:CC:DD:EE:FF",
     }
 
     current_values = {
