@@ -14,10 +14,12 @@ GH_BRANCH = "noble"
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = "999"
-STORAGE = "local-lvm"
+# STORAGE = "local-lvm"
+# DISK_SLOT = "virtio0"
+STORAGE = "DRIVE-ZFS"
 DISK_SLOT = "virtio0"
 
-FOG_URL = "http://your-fog-ip/fog"
+FOG_URL = "http://192.168.14.9/fog"
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
 FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
 VM_MAC = "AA:BB:CC:DD:EE:FF"
@@ -106,7 +108,9 @@ def fog_request(method, path, **kwargs):
 def extract_required(data, field_name, context):
     value = data.get(field_name)
     if value is None:
-        raise RuntimeError(f"FOG response for {context} did not include '{field_name}'.")
+        raise RuntimeError(
+            f"FOG response for {context} did not include '{field_name}'."
+        )
     return value
 
 
@@ -147,9 +151,7 @@ def get_latest_artifact():
         None,
     )
     if target is None:
-        available = [
-            f"{a.get('name')} (expired={a.get('expired')})" for a in artifacts
-        ]
+        available = [f"{a.get('name')} (expired={a.get('expired')})" for a in artifacts]
         raise RuntimeError(
             f"No non-expired 'kramden-img' artifact was found for run {run['id']}. "
             f"Available artifacts: {available}"
@@ -275,7 +277,9 @@ def wait_for_completion(host_id):
 
     while True:
         active_tasks = fog_request("GET", "/task/active").json().get("tasks", [])
-        is_active = any(str(task.get("hostID")) == str(host_id) for task in active_tasks)
+        is_active = any(
+            str(task.get("hostID")) == str(host_id) for task in active_tasks
+        )
 
         if is_active:
             saw_active_task = True
