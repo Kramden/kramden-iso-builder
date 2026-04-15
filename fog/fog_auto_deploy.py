@@ -22,7 +22,7 @@ DISK_SLOT = "virtio0"
 FOG_URL = "http://192.168.14.9/fog"
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
 FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
-VM_MAC = "AA:BB:CC:DD:EE:FF"
+VM_MAC = "bc:24:11:83:52:e0"
 
 REQUEST_TIMEOUT = 30
 POLL_INTERVAL = 30
@@ -50,7 +50,7 @@ def validate_config():
         "FOG_API_TOKEN": "your_global_token",
         "FOG_USER_TOKEN": "your_user_token",
         "FOG_URL": "http://your-fog-ip/fog",
-        "VM_MAC": "AA:BB:CC:DD:EE:FF",
+        "VM_MAC": "bc:24:11:83:52:e0",
     }
 
     current_values = {
