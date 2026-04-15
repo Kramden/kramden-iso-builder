@@ -83,10 +83,10 @@ def run_command(args, capture_output=False):
 
 
 def github_get(url, **kwargs):
+    kwargs.setdefault("timeout", REQUEST_TIMEOUT)
     response = requests.get(
         url,
         headers=GITHUB_HEADERS,
-        timeout=REQUEST_TIMEOUT,
         **kwargs,
     )
     response.raise_for_status()
@@ -166,7 +166,7 @@ def get_latest_artifact():
 
 def download_and_extract(url, artifact_name):
     print(f"[*] Downloading {artifact_name}...")
-    with github_get(url, stream=True) as response:
+    with github_get(url, stream=True, timeout=300) as response:
         with TEMP_ZIP.open("wb") as handle:
             for chunk in response.iter_content(chunk_size=1024 * 1024):
                 if chunk:
