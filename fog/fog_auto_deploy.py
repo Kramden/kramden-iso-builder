@@ -1,63 +1,243 @@
 import os
-import time
-import requests
+import re
 import subprocess
-import json
+import time
+import zipfile
+from pathlib import Path
+
+import requests
 
 # --- CONFIGURATION ---
 GH_REPO = "Kramden/kramden-iso-builder"
 GH_WORKFLOW = "build-image.yaml"
+GH_BRANCH = "noble"
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = "999"
 STORAGE = "local-lvm"
+DISK_SLOT = "virtio0"
 
 FOG_URL = "http://your-fog-ip/fog"
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
 FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
 VM_MAC = "AA:BB:CC:DD:EE:FF"
 
-HEADERS = {
+REQUEST_TIMEOUT = 30
+POLL_INTERVAL = 30
+TASK_START_TIMEOUT = 600
+
+TEMP_ZIP = Path("temp.zip")
+CONFIG_LINE_PATTERN = re.compile(r"^(?P<key>[^:]+):\s*(?P<value>.+)$")
+
+GITHUB_HEADERS = {
+    "Authorization": f"Bearer {GH_TOKEN}",
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
+
+FOG_HEADERS = {
     "fog-api-token": FOG_API_TOKEN,
     "fog-user-token": FOG_USER_TOKEN,
     "Content-Type": "application/json",
 }
 
 
+def validate_config():
+    placeholders = {
+        "GH_TOKEN": "your_github_read_only_token",
+        "FOG_API_TOKEN": "your_global_token",
+        "FOG_USER_TOKEN": "your_user_token",
+        "FOG_URL": "http://your-fog-ip/fog",
+        "VM_MAC": "AA:BB:CC:DD:EE:FF",
+    }
+
+    current_values = {
+        "GH_TOKEN": GH_TOKEN,
+        "FOG_API_TOKEN": FOG_API_TOKEN,
+        "FOG_USER_TOKEN": FOG_USER_TOKEN,
+        "FOG_URL": FOG_URL,
+        "VM_MAC": VM_MAC,
+    }
+
+    missing = [
+        name
+        for name, placeholder in placeholders.items()
+        if current_values[name] == placeholder
+    ]
+    if missing:
+        raise ValueError(
+            "Update the following configuration values before running: "
+            + ", ".join(missing)
+        )
+
+
+def run_command(args, capture_output=False):
+    return subprocess.run(
+        args,
+        check=True,
+        text=True,
+        capture_output=capture_output,
+    )
+
+
+def github_get(url, **kwargs):
+    response = requests.get(
+        url,
+        headers=GITHUB_HEADERS,
+        timeout=REQUEST_TIMEOUT,
+        **kwargs,
+    )
+    response.raise_for_status()
+    return response
+
+
+def fog_request(method, path, **kwargs):
+    response = requests.request(
+        method,
+        f"{FOG_URL.rstrip('/')}{path}",
+        headers=FOG_HEADERS,
+        timeout=REQUEST_TIMEOUT,
+        **kwargs,
+    )
+    response.raise_for_status()
+    return response
+
+
+def extract_required(data, field_name, context):
+    value = data.get(field_name)
+    if value is None:
+        raise RuntimeError(f"FOG response for {context} did not include '{field_name}'.")
+    return value
+
+
 def get_latest_artifact():
-    print(f"[*] Querying GitHub for latest successful {GH_WORKFLOW} run...")
-    api_url = (
-        f"https://api.github.com/repos/{GH_REPO}/actions/workflows/{GH_WORKFLOW}/runs"
+    print(
+        f"[*] Querying GitHub for latest successful {GH_WORKFLOW} run on {GH_BRANCH}..."
     )
-    r = requests.get(api_url, params={"status": "success", "per_page": 1})
-    run_id = r.json()["workflow_runs"][0]["id"]
-
-    art_url = f"https://api.github.com/repos/{GH_REPO}/actions/runs/{run_id}/artifacts"
-    arts = requests.get(art_url).json()
-    target = next(a for a in arts["artifacts"] if a["name"].endswith(".qcow2.zst"))
-    return target["download_url"], target["name"]
-
-
-def download_and_extract(url, filename):
-    print(f"[*] Downloading {filename}...")
-    subprocess.run(
-        ["curl", "-L", "-H", f"Authorization: token {GH_TOKEN}", "-o", "temp.zip", url]
+    runs_resp = github_get(
+        f"https://api.github.com/repos/{GH_REPO}/actions/workflows/{GH_WORKFLOW}/runs",
+        params={"branch": GH_BRANCH, "per_page": 10},
     )
-    subprocess.run(["unzip", "-o", "temp.zip"])
+    workflow_runs = runs_resp.json().get("workflow_runs", [])
+    run = next(
+        (
+            item
+            for item in workflow_runs
+            if item.get("conclusion") == "success"
+            and item.get("head_branch") == GH_BRANCH
+        ),
+        None,
+    )
+    if run is None:
+        raise RuntimeError(
+            f"No successful {GH_WORKFLOW} runs were found on branch '{GH_BRANCH}'."
+        )
 
-    zst_file = filename + ".zst"
-    raw_qcow2 = filename.replace(".zst", "")
+    artifacts_resp = github_get(
+        f"https://api.github.com/repos/{GH_REPO}/actions/runs/{run['id']}/artifacts"
+    )
+    artifacts = artifacts_resp.json().get("artifacts", [])
+    target = next(
+        (
+            artifact
+            for artifact in artifacts
+            if artifact.get("name", "").endswith(".qcow2.zst")
+            and not artifact.get("expired", False)
+        ),
+        None,
+    )
+    if target is None:
+        raise RuntimeError(
+            f"No non-expired .qcow2.zst artifact was found for run {run['id']}."
+        )
 
-    print(f"[*] Decompressing {zst_file}...")
-    subprocess.run(["zstd", "-d", zst_file, "-o", raw_qcow2])
-    return raw_qcow2
+    download_url = target.get("archive_download_url") or target.get("download_url")
+    if not download_url:
+        raise RuntimeError("GitHub did not provide a usable artifact download URL.")
+
+    return download_url, target["name"]
+
+
+def download_and_extract(url, artifact_name):
+    print(f"[*] Downloading {artifact_name}...")
+    with github_get(url, stream=True) as response:
+        with TEMP_ZIP.open("wb") as handle:
+            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    handle.write(chunk)
+
+    with zipfile.ZipFile(TEMP_ZIP) as archive:
+        members = archive.namelist()
+        zst_members = [member for member in members if member.endswith(".qcow2.zst")]
+        if len(zst_members) != 1:
+            raise RuntimeError(
+                "Artifact zip did not contain exactly one .qcow2.zst file. "
+                f"Found: {members}"
+            )
+        archive.extract(zst_members[0])
+
+    zst_path = Path(zst_members[0])
+    if zst_path.suffix != ".zst":
+        raise RuntimeError(f"Expected a .zst artifact, got '{zst_path.name}'.")
+
+    raw_qcow2 = zst_path.with_suffix("")
+    print(f"[*] Decompressing {zst_path}...")
+    run_command(["zstd", "-d", str(zst_path), "-o", str(raw_qcow2)])
+    return zst_path, raw_qcow2
+
+
+def get_vm_config():
+    result = run_command(["qm", "config", VM_ID], capture_output=True)
+    config = {}
+    for line in result.stdout.splitlines():
+        match = CONFIG_LINE_PATTERN.match(line)
+        if match:
+            config[match.group("key")] = match.group("value")
+    return config
+
+
+def get_unused_volumes(config):
+    return {
+        key: value
+        for key, value in config.items()
+        if key.startswith("unused") and value
+    }
+
+
+def build_disk_slot_value(imported_volume, current_disk_value):
+    if not current_disk_value or "," not in current_disk_value:
+        return imported_volume
+    current_options = [
+        option
+        for option in current_disk_value.split(",")[1:]
+        if not option.startswith("size=")
+    ]
+    if not current_options:
+        return imported_volume
+    return f"{imported_volume},{','.join(current_options)}"
 
 
 def proxmox_disk_swap(qcow2_path):
     print(f"[*] Importing disk to Proxmox VM {VM_ID}...")
-    subprocess.run(["qm", "disk", "import", VM_ID, qcow2_path, STORAGE])
-    disk_name = f"{STORAGE}:vm-{VM_ID}-disk-0"
-    subprocess.run(["qm", "set", VM_ID, "--virtio0", disk_name])
+    before_config = get_vm_config()
+    before_unused = set(get_unused_volumes(before_config).values())
+
+    run_command(["qm", "disk", "import", VM_ID, str(qcow2_path), STORAGE])
+
+    after_config = get_vm_config()
+    after_unused = get_unused_volumes(after_config)
+    new_volumes = sorted(set(after_unused.values()) - before_unused)
+    if len(new_volumes) != 1:
+        raise RuntimeError(
+            "Unable to identify the newly imported Proxmox volume. "
+            f"New unused volumes: {new_volumes or 'none'}"
+        )
+
+    imported_volume = new_volumes[0]
+    disk_slot_value = build_disk_slot_value(
+        imported_volume, before_config.get(DISK_SLOT)
+    )
+    run_command(["qm", "set", VM_ID, f"--{DISK_SLOT}", disk_slot_value])
 
 
 def fog_orchestration(image_name):
@@ -68,60 +248,64 @@ def fog_orchestration(image_name):
         "imageTypeID": "1",
         "osID": "1",
     }
-    img_resp = requests.post(
-        f"{FOG_URL}/image/create", headers=HEADERS, json=img_payload
-    )
-    new_img_id = img_resp.json()["id"]
+    img_resp = fog_request("POST", "/image/create", json=img_payload).json()
+    new_img_id = extract_required(img_resp, "id", "image creation")
 
-    host_resp = requests.get(f"{FOG_URL}/host", headers=HEADERS)
-    host = next(
-        h for h in host_resp.json()["hosts"] if h["mac"].lower() == VM_MAC.lower()
-    )
-    host_id = host["id"]
+    host_data = fog_request("GET", "/host").json()
+    hosts = host_data.get("hosts", [])
+    host = next((h for h in hosts if h.get("mac", "").lower() == VM_MAC.lower()), None)
+    if host is None:
+        raise RuntimeError(f"No FOG host matched VM_MAC '{VM_MAC}'.")
 
-    requests.put(
-        f"{FOG_URL}/host/{host_id}/edit", headers=HEADERS, json={"imageID": new_img_id}
-    )
-    requests.post(
-        f"{FOG_URL}/host/{host_id}/task", headers=HEADERS, json={"taskTypeID": 1}
-    )
+    host_id = extract_required(host, "id", "host lookup")
+
+    fog_request("PUT", f"/host/{host_id}/edit", json={"imageID": new_img_id})
+    fog_request("POST", f"/host/{host_id}/task", json={"taskTypeID": 1})
     return host_id
 
 
 def wait_for_completion(host_id):
-    print("[*] Monitoring FOG Capture status...")
+    print("[*] Monitoring FOG capture status...")
+    start_time = time.time()
+    saw_active_task = False
+
     while True:
-        # Check active tasks
-        tasks_resp = requests.get(f"{FOG_URL}/task/active", headers=HEADERS)
-        active_tasks = tasks_resp.json().get("tasks", [])
+        active_tasks = fog_request("GET", "/task/active").json().get("tasks", [])
+        is_active = any(str(task.get("hostID")) == str(host_id) for task in active_tasks)
 
-        # If our host is no longer in the active task list, the capture is done
-        is_active = any(str(t.get("hostID")) == str(host_id) for t in active_tasks)
+        if is_active:
+            saw_active_task = True
+        elif saw_active_task:
+            print("[+] Capture complete. Cleaning up...")
+            return
+        elif time.time() - start_time >= TASK_START_TIMEOUT:
+            raise RuntimeError(
+                "Capture task never appeared in FOG's active task list. "
+                "Check the task queue, PXE boot settings, and host registration."
+            )
 
-        if not is_active:
-            print("[+] Capture Complete. Cleaning up...")
-            break
+        time.sleep(POLL_INTERVAL)
 
-        time.sleep(30)  # Poll every 30 seconds
+
+def cleanup_temp_files(*paths):
+    for path in paths:
+        path.unlink()
 
 
 def main():
-    download_url, filename = get_latest_artifact()
-    raw_qcow2 = download_and_extract(download_url, filename)
+    validate_config()
+
+    download_url, artifact_name = get_latest_artifact()
+    zst_path, raw_qcow2 = download_and_extract(download_url, artifact_name)
 
     proxmox_disk_swap(raw_qcow2)
-    host_id = fog_orchestration(filename)
+    host_id = fog_orchestration(zst_path.name)
 
-    subprocess.run(["qm", "start", VM_ID])
-
-    # New Polling Logic
+    run_command(["qm", "start", VM_ID])
     wait_for_completion(host_id)
 
-    # Cleanup
-    subprocess.run(["qm", "stop", VM_ID])
-    os.remove("temp.zip")
-    os.remove(filename + ".zst")
-    os.remove(raw_qcow2)
+    run_command(["qm", "stop", VM_ID])
+    cleanup_temp_files(TEMP_ZIP, zst_path, raw_qcow2)
     print("[!] All temporary files removed and VM powered down.")
 
 

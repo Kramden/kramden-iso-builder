@@ -11,7 +11,7 @@ That is required because the workflow depends on:
 - `qm` for local disk import and VM control
 - local access to Proxmox storage
 - network access to both GitHub and the FOG server
-- `zstd` and `unzip` for artifact extraction
+- `zstd` for artifact extraction
 
 ## What the script expects
 
@@ -20,10 +20,12 @@ Before running `fog_auto_deploy.py`, update the configuration block at the top o
 ```python
 GH_REPO = "Kramden/kramden-iso-builder"
 GH_WORKFLOW = "build-image.yaml"
+GH_BRANCH = "noble"
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = "999"
 STORAGE = "local-lvm"
+DISK_SLOT = "virtio0"
 
 FOG_URL = "http://your-fog-ip/fog"
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
@@ -39,9 +41,11 @@ The token values can stay in the script, but the script now prefers environment 
 | --- | --- |
 | `GH_REPO` | GitHub repository that publishes the build artifact |
 | `GH_WORKFLOW` | Workflow file to inspect for successful runs |
+| `GH_BRANCH` | Branch that the workflow run must come from |
 | `GH_TOKEN` | Fine-grained GitHub token used to download the artifact; can be supplied with the `GH_TOKEN` environment variable |
 | `VM_ID` | Proxmox VM ID for the golden VM |
 | `STORAGE` | Proxmox storage target used by `qm disk import` |
+| `DISK_SLOT` | Proxmox disk interface to replace on the golden VM, such as `virtio0` |
 | `FOG_URL` | Base URL of the FOG instance |
 | `FOG_API_TOKEN` | FOG global API token; can be supplied with the `FOG_API_TOKEN` environment variable |
 | `FOG_USER_TOKEN` | FOG user API token; can be supplied with the `FOG_USER_TOKEN` environment variable |
@@ -52,7 +56,7 @@ The token values can stay in the script, but the script now prefers environment 
 Install the required packages on the Proxmox host:
 
 ```bash
-apt-get install python3-requests zstd unzip
+apt-get install python3-requests zstd
 ```
 
 Also make sure:
@@ -60,8 +64,9 @@ Also make sure:
 1. The golden VM already exists in Proxmox.
 2. Its boot order is set to prefer **network/PXE**.
 3. The VM's MAC address matches the host entry in FOG.
-4. The Proxmox storage name in `STORAGE` is correct.
-5. The Proxmox host can reach GitHub and the FOG server.
+4. The correct boot disk interface is reflected in `DISK_SLOT`.
+5. The Proxmox storage name in `STORAGE` is correct.
+6. The Proxmox host can reach GitHub and the FOG server.
 
 ## Token setup
 
@@ -103,20 +108,21 @@ python3 fog_auto_deploy.py
 The script performs the following sequence:
 
 1. **Find the latest successful build artifact**
-   - Queries GitHub Actions for the latest successful run of `build-image.yaml`.
+   - Queries GitHub Actions for successful runs of `build-image.yaml` on `GH_BRANCH`.
    - Looks for an artifact whose name ends with `.qcow2.zst`.
 
 2. **Download and extract the artifact**
    - Downloads the artifact archive to `temp.zip`.
-   - Unzips the GitHub artifact wrapper.
+   - Extracts the GitHub artifact wrapper with Python's built-in zip support.
    - Decompresses the `.zst` file into a raw `.qcow2`.
 
 3. **Replace the golden VM disk in Proxmox**
    - Imports the new qcow2 into the configured Proxmox storage using `qm disk import`.
-   - Reattaches the imported disk as `virtio0` on the golden VM.
+   - Detects the newly imported unused volume.
+   - Reattaches that imported volume to `DISK_SLOT` on the golden VM.
 
 4. **Create the FOG image and task**
-   - Creates a new FOG image definition named from the artifact filename.
+   - Creates a new FOG image definition named from the downloaded `.qcow2.zst` filename.
    - Uses a filesystem-safe image path derived from the name.
    - Finds the FOG host record by `VM_MAC`.
    - Assigns the new image to that host.
@@ -128,7 +134,8 @@ The script performs the following sequence:
 
 6. **Wait for completion**
    - Polls `FOG_URL/task/active` every 30 seconds.
-   - Treats the capture as complete once that host no longer appears in the active task list.
+   - Waits for the host to appear in the active task list before treating the task as started.
+   - Treats the capture as complete only after that active task later disappears.
 
 7. **Clean up**
    - Stops the VM with `qm stop`.
@@ -139,6 +146,7 @@ The script performs the following sequence:
 
 ## Operational notes
 
-- The workflow assumes the latest successful GitHub Actions artifact is the one you want to deploy.
-- The script creates a new FOG image entry for each artifact name rather than reusing an existing image definition.
-- Cleanup happens after FOG no longer reports an active task for the host, which keeps large temporary image files from accumulating on the Proxmox host.
+- The workflow assumes the latest successful GitHub Actions artifact on `GH_BRANCH` is the one you want to deploy.
+- The script creates a new FOG image entry for each downloaded image filename rather than reusing an existing image definition.
+- The script now fails fast on command failures, HTTP errors, missing config placeholders, and missing API fields instead of continuing with partial state.
+- Cleanup happens after FOG reports that the host's capture task started and then finished, which keeps large temporary image files from accumulating on the Proxmox host.
