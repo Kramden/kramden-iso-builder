@@ -56,7 +56,7 @@ jobs:
         with:
           name: kramden-iso
           path: ${{ github.workspace }}/kramden*.iso
-          retention-days: 5
+          retention-days: 15
       - name: Build Kramden Image
         run: |
           sudo apt update --fix-missing
@@ -78,4 +78,4 @@ jobs:
         with:
           name: kramden-img
           path: ${{ github.workspace }}/kramden*.qcow2.*
-          retention-days: 5
+          retention-days: 15
