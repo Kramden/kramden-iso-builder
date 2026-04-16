@@ -13,7 +13,7 @@ GH_WORKFLOW = "build-image.yaml"
 GH_BRANCH = "noble"
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
-VM_ID = "999"
+VM_ID = os.environ.get("VM_ID", "999")
 # STORAGE = "local-lvm"
 # DISK_SLOT = "virtio0"
 STORAGE = "DRIVE-ZFS"
@@ -22,7 +22,7 @@ DISK_SLOT = "virtio0"
 FOG_URL = "http://192.168.14.9/fog"
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
 FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
-VM_MAC = "bc:24:11:83:52:e0"
+VM_MAC = os.environ.get("VM_MAC", "bc:24:11:83:52:e0")
 
 REQUEST_TIMEOUT = 30
 POLL_INTERVAL = 30
@@ -193,7 +193,14 @@ def download_and_extract(url, artifact_name):
 
 
 def get_vm_config():
-    result = run_command(["qm", "config", VM_ID], capture_output=True)
+    try:
+        result = run_command(["qm", "config", VM_ID], capture_output=True)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+            f"'qm config {VM_ID}' failed (exit {exc.returncode}). "
+            f"Check that VM {VM_ID} exists on this Proxmox host. "
+            f"stderr: {exc.stderr.strip() if exc.stderr else '(none)'}"
+        ) from exc
     config = {}
     for line in result.stdout.splitlines():
         match = CONFIG_LINE_PATTERN.match(line)
