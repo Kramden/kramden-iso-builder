@@ -31,6 +31,34 @@ def github_get(url, **kwargs):
     return response
 
 
+def download_artifact_archive(url, destination):
+    redirect_response = github_get(url, allow_redirects=False)
+    if redirect_response.status_code != 302:
+        raise RuntimeError(
+            "GitHub did not return an artifact download redirect. "
+            f"Status: {redirect_response.status_code}"
+        )
+
+    download_url = redirect_response.headers.get("Location")
+    if not download_url:
+        raise RuntimeError("GitHub artifact download response did not include a Location header.")
+
+    with requests.get(download_url, stream=True, timeout=300) as response:
+        response.raise_for_status()
+        with destination.open("wb") as handle:
+            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    handle.write(chunk)
+
+    if not zipfile.is_zipfile(destination):
+        preview = destination.read_bytes()[:200].decode("utf-8", errors="replace").strip()
+        destination.unlink(missing_ok=True)
+        raise RuntimeError(
+            "Downloaded GitHub artifact is not a zip archive. "
+            f"Response preview: {preview or '(empty response)'}"
+        )
+
+
 def get_latest_artifact():
     print(f"[*] Querying GitHub for latest successful {GH_WORKFLOW} run on {GH_BRANCH}...")
     runs_resp = github_get(
@@ -83,11 +111,7 @@ def get_latest_artifact():
 
 def download_and_extract(url, artifact_name):
     print(f"[*] Downloading {artifact_name}...")
-    with github_get(url, stream=True) as response:
-        with TEMP_ZIP.open("wb") as handle:
-            for chunk in response.iter_content(chunk_size=1024 * 1024):
-                if chunk:
-                    handle.write(chunk)
+    download_artifact_archive(url, TEMP_ZIP)
 
     with zipfile.ZipFile(TEMP_ZIP) as archive:
         members = archive.namelist()
@@ -99,7 +123,7 @@ def download_and_extract(url, artifact_name):
             )
         archive.extract(zst_members[0])
 
-    TEMP_ZIP.unlink()
+    TEMP_ZIP.unlink(missing_ok=True)
 
     zst_path = Path(zst_members[0])
     raw_qcow2 = zst_path.with_suffix("")

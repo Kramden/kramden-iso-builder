@@ -93,6 +93,34 @@ def github_get(url, **kwargs):
     return response
 
 
+def download_artifact_archive(url, destination):
+    redirect_response = github_get(url, allow_redirects=False)
+    if redirect_response.status_code != 302:
+        raise RuntimeError(
+            "GitHub did not return an artifact download redirect. "
+            f"Status: {redirect_response.status_code}"
+        )
+
+    download_url = redirect_response.headers.get("Location")
+    if not download_url:
+        raise RuntimeError("GitHub artifact download response did not include a Location header.")
+
+    with requests.get(download_url, stream=True, timeout=300) as response:
+        response.raise_for_status()
+        with destination.open("wb") as handle:
+            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    handle.write(chunk)
+
+    if not zipfile.is_zipfile(destination):
+        preview = destination.read_bytes()[:200].decode("utf-8", errors="replace").strip()
+        destination.unlink(missing_ok=True)
+        raise RuntimeError(
+            "Downloaded GitHub artifact is not a zip archive. "
+            f"Response preview: {preview or '(empty response)'}"
+        )
+
+
 def fog_request(method, path, **kwargs):
     response = requests.request(
         method,
@@ -166,11 +194,7 @@ def get_latest_artifact():
 
 def download_and_extract(url, artifact_name):
     print(f"[*] Downloading {artifact_name}...")
-    with github_get(url, stream=True, timeout=300) as response:
-        with TEMP_ZIP.open("wb") as handle:
-            for chunk in response.iter_content(chunk_size=1024 * 1024):
-                if chunk:
-                    handle.write(chunk)
+    download_artifact_archive(url, TEMP_ZIP)
 
     with zipfile.ZipFile(TEMP_ZIP) as archive:
         members = archive.namelist()
@@ -181,6 +205,8 @@ def download_and_extract(url, artifact_name):
                 f"Found: {members}"
             )
         archive.extract(zst_members[0])
+
+    TEMP_ZIP.unlink(missing_ok=True)
 
     zst_path = Path(zst_members[0])
     if zst_path.suffix != ".zst":
@@ -304,7 +330,7 @@ def wait_for_completion(host_id):
 
 def cleanup_temp_files(*paths):
     for path in paths:
-        path.unlink()
+        path.unlink(missing_ok=True)
 
 
 def main():
