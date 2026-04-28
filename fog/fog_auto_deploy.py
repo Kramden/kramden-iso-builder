@@ -44,6 +44,13 @@ FOG_HEADERS = {
 }
 
 
+def normalize_fog_url(url):
+    normalized = url.rstrip("/")
+    if normalized.endswith("/management"):
+        normalized = normalized[: -len("/management")]
+    return normalized
+
+
 def validate_config():
     placeholders = {
         "GH_TOKEN": "your_github_read_only_token",
@@ -138,6 +145,11 @@ def fog_request(method, path, **kwargs):
         ) from exc
     response.raise_for_status()
     return response
+
+
+def verify_fog_connectivity():
+    print(f"[*] Verifying FOG API connectivity at {FOG_URL}...")
+    fog_request("GET", "/system/info")
 
 
 def extract_required(data, field_name, context):
@@ -341,7 +353,11 @@ def cleanup_temp_files(*paths):
 
 
 def main():
+    global FOG_URL
+
     validate_config()
+    FOG_URL = normalize_fog_url(FOG_URL)
+    verify_fog_connectivity()
 
     download_url, artifact_name = get_latest_artifact()
     zst_path, raw_qcow2 = download_and_extract(download_url, artifact_name)

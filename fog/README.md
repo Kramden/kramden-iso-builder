@@ -46,7 +46,7 @@ The script prefers environment variables when they are set, which makes it easie
 | `VM_ID` | Proxmox VM ID for the golden VM; can be supplied with the `VM_ID` environment variable |
 | `STORAGE` | Proxmox storage target used by `qm disk import`; can be supplied with the `STORAGE` environment variable |
 | `DISK_SLOT` | Proxmox disk interface to replace on the golden VM, such as `virtio0`; can be supplied with the `DISK_SLOT` environment variable |
-| `FOG_URL` | Base URL of the FOG instance; can be supplied with the `FOG_URL` environment variable |
+| `FOG_URL` | Base URL of the FOG instance, typically `http://your-fog-ip/fog`; if `/management` is included it will be stripped automatically |
 | `FOG_API_TOKEN` | FOG global API token; can be supplied with the `FOG_API_TOKEN` environment variable |
 | `FOG_USER_TOKEN` | FOG user API token; can be supplied with the `FOG_USER_TOKEN` environment variable |
 | `VM_MAC` | MAC address of the host record in FOG that should receive the image assignment; can be supplied with the `VM_MAC` environment variable |
@@ -109,37 +109,42 @@ python3 fog_auto_deploy.py
 
 The script performs the following sequence:
 
-1. **Find the latest successful build artifact**
+1. **Verify FOG connectivity**
+   - Calls `FOG_URL/system/info` before touching Proxmox storage.
+   - Fails early if the Proxmox host cannot reach FOG or the API is unavailable.
+   - Normalizes `FOG_URL` so a value ending in `/management` is treated as the API base URL without that suffix.
+
+2. **Find the latest successful build artifact**
    - Queries GitHub Actions for successful runs of `build-image.yaml` on `GH_BRANCH`.
    - Looks for an artifact whose name ends with `.qcow2.zst`.
 
-2. **Download and extract the artifact**
+3. **Download and extract the artifact**
    - Downloads the artifact archive to `temp.zip`.
    - Extracts the GitHub artifact wrapper with Python's built-in zip support.
    - Decompresses the `.zst` file into a raw `.qcow2`.
 
-3. **Replace the golden VM disk in Proxmox**
+4. **Replace the golden VM disk in Proxmox**
    - Imports the new qcow2 into the configured Proxmox storage using `qm disk import`.
    - Detects the newly imported unused volume.
    - Reattaches that imported volume to `DISK_SLOT` on the golden VM.
 
-4. **Create the FOG image and task**
+5. **Create the FOG image and task**
    - Creates a new FOG image definition named from the downloaded `.qcow2.zst` filename.
    - Uses a filesystem-safe image path derived from the name.
    - Finds the FOG host record by `VM_MAC`.
    - Assigns the new image to that host.
    - Creates a **capture task** for the host.
 
-5. **Boot the VM into PXE**
+6. **Boot the VM into PXE**
    - Starts the Proxmox VM with `qm start`.
    - The VM boots from the network, checks in with FOG, and begins the capture task.
 
-6. **Wait for completion**
+7. **Wait for completion**
    - Polls `FOG_URL/task/active` every 30 seconds.
    - Waits for the host to appear in the active task list before treating the task as started.
    - Treats the capture as complete only after that active task later disappears.
 
-7. **Clean up**
+8. **Clean up**
    - Stops the VM with `qm stop`.
    - Deletes the temporary files:
      - `temp.zip`
