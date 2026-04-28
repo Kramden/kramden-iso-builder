@@ -19,7 +19,7 @@ VM_ID = os.environ.get("VM_ID", "999")
 STORAGE = "DRIVE-ZFS"
 DISK_SLOT = "virtio0"
 
-FOG_URL = "http://192.168.14.9/fog"
+FOG_URL = os.environ.get("FOG_URL", "http://192.168.14.9/fog")
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
 FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
 VM_MAC = os.environ.get("VM_MAC", "bc:24:11:83:52:e0")
@@ -122,13 +122,20 @@ def download_artifact_archive(url, destination):
 
 
 def fog_request(method, path, **kwargs):
-    response = requests.request(
-        method,
-        f"{FOG_URL.rstrip('/')}{path}",
-        headers=FOG_HEADERS,
-        timeout=REQUEST_TIMEOUT,
-        **kwargs,
-    )
+    url = f"{FOG_URL.rstrip('/')}{path}"
+    try:
+        response = requests.request(
+            method,
+            url,
+            headers=FOG_HEADERS,
+            timeout=REQUEST_TIMEOUT,
+            **kwargs,
+        )
+    except requests.exceptions.RequestException as exc:
+        raise RuntimeError(
+            f"FOG request failed for {method} {url}: {exc}. "
+            "Check FOG_URL, network reachability from the Proxmox host, and whether the FOG API is available."
+        ) from exc
     response.raise_for_status()
     return response
 

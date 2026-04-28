@@ -23,17 +23,17 @@ GH_WORKFLOW = "build-image.yaml"
 GH_BRANCH = "noble"
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
-VM_ID = "999"
-STORAGE = "local-lvm"
-DISK_SLOT = "virtio0"
+VM_ID = os.environ.get("VM_ID", "999")
+STORAGE = os.environ.get("STORAGE", "local-lvm")
+DISK_SLOT = os.environ.get("DISK_SLOT", "virtio0")
 
-FOG_URL = "http://your-fog-ip/fog"
+FOG_URL = os.environ.get("FOG_URL", "http://your-fog-ip/fog")
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
 FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
-VM_MAC = "AA:BB:CC:DD:EE:FF"
+VM_MAC = os.environ.get("VM_MAC", "AA:BB:CC:DD:EE:FF")
 ```
 
-The token values can stay in the script, but the script now prefers environment variables when they are set.
+The script prefers environment variables when they are set, which makes it easier to reuse the same file across different Proxmox and FOG environments.
 
 ### Configuration values
 
@@ -43,13 +43,13 @@ The token values can stay in the script, but the script now prefers environment 
 | `GH_WORKFLOW` | Workflow file to inspect for successful runs |
 | `GH_BRANCH` | Branch that the workflow run must come from |
 | `GH_TOKEN` | Fine-grained GitHub token used to download the artifact; can be supplied with the `GH_TOKEN` environment variable |
-| `VM_ID` | Proxmox VM ID for the golden VM |
-| `STORAGE` | Proxmox storage target used by `qm disk import` |
-| `DISK_SLOT` | Proxmox disk interface to replace on the golden VM, such as `virtio0` |
-| `FOG_URL` | Base URL of the FOG instance |
+| `VM_ID` | Proxmox VM ID for the golden VM; can be supplied with the `VM_ID` environment variable |
+| `STORAGE` | Proxmox storage target used by `qm disk import`; can be supplied with the `STORAGE` environment variable |
+| `DISK_SLOT` | Proxmox disk interface to replace on the golden VM, such as `virtio0`; can be supplied with the `DISK_SLOT` environment variable |
+| `FOG_URL` | Base URL of the FOG instance; can be supplied with the `FOG_URL` environment variable |
 | `FOG_API_TOKEN` | FOG global API token; can be supplied with the `FOG_API_TOKEN` environment variable |
 | `FOG_USER_TOKEN` | FOG user API token; can be supplied with the `FOG_USER_TOKEN` environment variable |
-| `VM_MAC` | MAC address of the host record in FOG that should receive the image assignment |
+| `VM_MAC` | MAC address of the host record in FOG that should receive the image assignment; can be supplied with the `VM_MAC` environment variable |
 
 ## Prerequisites
 
@@ -92,8 +92,10 @@ Export the tokens before running the script:
 
 ```bash
 export GH_TOKEN="your_github_read_only_token"
+export FOG_URL="http://your-fog-ip/fog"
 export FOG_API_TOKEN="your_global_token"
 export FOG_USER_TOKEN="your_user_token"
+export VM_MAC="AA:BB:CC:DD:EE:FF"
 python3 fog_auto_deploy.py
 ```
 
