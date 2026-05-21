@@ -15,4 +15,5 @@ chmod a+x new/minimal.standard.live/usr/bin/screen-test
 rm -rf new/minimal.standard.live/var/{cache,lib}/snapd new/minimal.standard.live/snap new/minimal.standard.live/etc/systemd/system/*snap*
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
+sed -i 's/splash/splash toram/g' new/iso/boot/grub/grub.cfg
 sed -i 's/30/3/g' new/iso/boot/grub/grub.cfg
