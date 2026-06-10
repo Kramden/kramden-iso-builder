@@ -15,10 +15,18 @@ GH_BRANCH = "noble"
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = os.environ.get("VM_ID", "999")
-# STORAGE = "local-lvm"
-# DISK_SLOT = "virtio0"
-STORAGE = "DRIVE-ZFS"
-DISK_SLOT = "virtio0"
+STORAGE = os.environ.get("STORAGE", "DRIVE-ZFS")
+# Disk slot to attach the imported image to. Must match the VM's boot disk
+# (the one in its `boot: order=...`) so the new image is what actually boots.
+DISK_SLOT = os.environ.get("DISK_SLOT", "scsi0")
+# Delete the disk displaced from DISK_SLOT after a successful swap so old
+# images don't accumulate on storage. Set REMOVE_OLD_DISK=0 to keep them.
+REMOVE_OLD_DISK = os.environ.get("REMOVE_OLD_DISK", "1").lower() not in (
+    "0",
+    "false",
+    "no",
+    "",
+)
 
 FOG_URL = os.environ.get("FOG_URL", "http://192.168.14.9/fog")
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
@@ -292,10 +300,52 @@ def build_disk_slot_value(imported_volume, current_disk_value):
     return f"{imported_volume},{','.join(current_options)}"
 
 
+def volume_id(disk_value):
+    return disk_value.split(",", 1)[0] if disk_value else None
+
+
+def get_vm_status():
+    result = run_command(["qm", "status", VM_ID], capture_output=True)
+    parts = result.stdout.strip().split()
+    return parts[-1] if parts else "unknown"
+
+
+def ensure_vm_stopped():
+    if get_vm_status() != "running":
+        return
+    print(f"[*] Stopping VM {VM_ID} before disk swap...")
+    run_command(["qm", "stop", VM_ID])
+    for _ in range(60):
+        if get_vm_status() != "running":
+            return
+        time.sleep(2)
+    raise RuntimeError(f"VM {VM_ID} did not stop within timeout; cannot swap disk.")
+
+
+def remove_displaced_disk(old_volume_id):
+    if not old_volume_id:
+        return
+    unused = get_unused_volumes(get_vm_config())
+    slot = next(
+        (key for key, value in unused.items() if volume_id(value) == old_volume_id),
+        None,
+    )
+    if slot is None:
+        print(
+            f"[!] Could not locate displaced disk '{old_volume_id}' in unused slots; "
+            "leaving it in place."
+        )
+        return
+    print(f"[*] Removing displaced disk '{old_volume_id}' ({slot})...")
+    run_command(["qm", "set", VM_ID, "--delete", slot])
+
+
 def proxmox_disk_swap(qcow2_path):
     print(f"[*] Importing disk to Proxmox VM {VM_ID}...")
+    ensure_vm_stopped()
     before_config = get_vm_config()
     before_unused = set(get_unused_volumes(before_config).values())
+    old_disk_value = before_config.get(DISK_SLOT)
 
     run_command(["qm", "disk", "import", VM_ID, str(qcow2_path), STORAGE])
 
@@ -309,10 +359,11 @@ def proxmox_disk_swap(qcow2_path):
         )
 
     imported_volume = new_volumes[0]
-    disk_slot_value = build_disk_slot_value(
-        imported_volume, before_config.get(DISK_SLOT)
-    )
+    disk_slot_value = build_disk_slot_value(imported_volume, old_disk_value)
     run_command(["qm", "set", VM_ID, f"--{DISK_SLOT}", disk_slot_value])
+
+    if REMOVE_OLD_DISK:
+        remove_displaced_disk(volume_id(old_disk_value))
 
 
 def host_has_mac(host, target_mac):
