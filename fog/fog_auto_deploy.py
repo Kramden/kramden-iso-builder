@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import subprocess
@@ -228,13 +229,18 @@ def download_and_extract(url, artifact_name):
     TEMP_ZIP.unlink(missing_ok=True)
 
     zst_path = Path(zst_members[0])
+    print(f"[*] Saved artifact to {zst_path.resolve()}")
+    return zst_path
+
+
+def decompress_artifact(zst_path):
     if zst_path.suffix != ".zst":
         raise RuntimeError(f"Expected a .zst artifact, got '{zst_path.name}'.")
 
     raw_qcow2 = zst_path.with_suffix("")
     print(f"[*] Decompressing {zst_path}...")
-    run_command(["zstd", "-d", str(zst_path), "-o", str(raw_qcow2)])
-    return zst_path, raw_qcow2
+    run_command(["zstd", "-d", "-f", str(zst_path), "-o", str(raw_qcow2)])
+    return raw_qcow2
 
 
 def get_vm_config():
@@ -377,15 +383,44 @@ def cleanup_temp_files(*paths):
         path.unlink(missing_ok=True)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Download the latest kramden image artifact, deploy it to a "
+            "Proxmox VM, and capture it into FOG."
+        )
+    )
+    parser.add_argument(
+        "artifact",
+        nargs="?",
+        help=(
+            "Path to an already-downloaded .qcow2.zst artifact. If omitted, "
+            "the latest successful GitHub artifact is downloaded into the "
+            "current directory."
+        ),
+    )
+    return parser.parse_args()
+
+
 def main():
     global FOG_URL
+
+    args = parse_args()
 
     validate_config()
     FOG_URL = normalize_fog_url(FOG_URL)
     verify_fog_connectivity()
 
-    download_url, artifact_name = get_latest_artifact()
-    zst_path, raw_qcow2 = download_and_extract(download_url, artifact_name)
+    if args.artifact:
+        zst_path = Path(args.artifact)
+        if not zst_path.is_file():
+            raise RuntimeError(f"Artifact '{zst_path}' does not exist.")
+        print(f"[*] Using existing artifact {zst_path}...")
+    else:
+        download_url, artifact_name = get_latest_artifact()
+        zst_path = download_and_extract(download_url, artifact_name)
+
+    raw_qcow2 = decompress_artifact(zst_path)
 
     proxmox_disk_swap(raw_qcow2)
     host_id = fog_orchestration(zst_path.name)
@@ -394,8 +429,8 @@ def main():
     wait_for_completion(host_id)
 
     run_command(["qm", "stop", VM_ID])
-    cleanup_temp_files(TEMP_ZIP, zst_path, raw_qcow2)
-    print("[!] All temporary files removed and VM powered down.")
+    cleanup_temp_files(TEMP_ZIP, raw_qcow2)
+    print(f"[!] VM powered down. Artifact retained at {zst_path.resolve()}")
 
 
 if __name__ == "__main__":
