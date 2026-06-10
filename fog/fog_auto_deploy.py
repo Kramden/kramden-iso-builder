@@ -25,6 +25,11 @@ FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
 FOG_USER_TOKEN = os.environ.get("FOG_USER_TOKEN", "your_user_token")
 VM_MAC = os.environ.get("VM_MAC", "bc:24:11:83:52:e0")
 
+# When set, reuse this existing FOG image ID instead of creating a new image
+# record each run. This avoids the buggy /image/create code path on FOG
+# servers that throw a 500 from imagemanagementpage.class.php under PHP 8.
+IMAGE_ID = os.environ.get("IMAGE_ID", "")
+
 REQUEST_TIMEOUT = 30
 POLL_INTERVAL = 30
 TASK_START_TIMEOUT = 600
@@ -333,15 +338,19 @@ def host_has_mac(host, target_mac):
 
 
 def fog_orchestration(image_name):
-    print(f"[*] Registering image '{image_name}' in FOG...")
-    img_payload = {
-        "name": image_name,
-        "path": image_name.replace(".", "_"),
-        "imageTypeID": "1",
-        "osID": "1",
-    }
-    img_resp = fog_request("POST", "/image/create", json=img_payload).json()
-    new_img_id = extract_required(img_resp, "id", "image creation")
+    if IMAGE_ID:
+        print(f"[*] Reusing existing FOG image ID {IMAGE_ID}...")
+        new_img_id = IMAGE_ID
+    else:
+        print(f"[*] Registering image '{image_name}' in FOG...")
+        img_payload = {
+            "name": image_name,
+            "path": image_name.replace(".", "_"),
+            "imageTypeID": "1",
+            "osID": "1",
+        }
+        img_resp = fog_request("POST", "/image/create", json=img_payload).json()
+        new_img_id = extract_required(img_resp, "id", "image creation")
 
     host_data = fog_request("GET", "/host").json()
     hosts = host_data.get("hosts", [])
