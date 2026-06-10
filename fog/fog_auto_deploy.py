@@ -144,7 +144,13 @@ def fog_request(method, path, **kwargs):
             f"FOG request failed for {method} {url}: {exc}. "
             "Check FOG_URL, network reachability from the Proxmox host, and whether the FOG API is available."
         ) from exc
-    response.raise_for_status()
+
+    if not response.ok:
+        body = response.text.strip()
+        raise RuntimeError(
+            f"FOG returned HTTP {response.status_code} for {method} {url}. "
+            f"Response body: {body or '(empty)'}"
+        )
     return response
 
 
