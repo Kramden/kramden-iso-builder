@@ -368,19 +368,46 @@ def fog_orchestration(image_name):
     return host_id
 
 
+# FOG task stateID values.
+TASK_STATES = {
+    "0": "queued",
+    "1": "queued",
+    "2": "checked-in",
+    "3": "imaging",
+    "4": "imaging",
+    "5": "complete",
+    "6": "cancelled",
+}
+
+
+def describe_task(task):
+    state_id = str(task.get("stateID", ""))
+    state = TASK_STATES.get(state_id, f"state {state_id}")
+    percent = task.get("percent")
+    if percent in (None, "", "0"):
+        return state
+    return f"{state} {percent}%"
+
+
 def wait_for_completion(host_id):
     print("[*] Monitoring FOG capture status...")
     start_time = time.time()
     saw_active_task = False
+    last_status = None
 
     while True:
         active_tasks = fog_request("GET", "/task/active").json().get("tasks", [])
-        is_active = any(
-            str(task.get("hostID")) == str(host_id) for task in active_tasks
+        host_task = next(
+            (t for t in active_tasks if str(t.get("hostID")) == str(host_id)),
+            None,
         )
 
-        if is_active:
+        if host_task is not None:
             saw_active_task = True
+            status = describe_task(host_task)
+            if status != last_status:
+                print(f"    [~] {status}")
+                last_status = status
         elif saw_active_task:
             print("[+] Capture complete. Cleaning up...")
             return
