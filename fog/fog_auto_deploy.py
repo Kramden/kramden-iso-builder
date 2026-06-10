@@ -19,14 +19,9 @@ STORAGE = os.environ.get("STORAGE", "DRIVE-ZFS")
 # Disk slot to attach the imported image to. Must match the VM's boot disk
 # (the one in its `boot: order=...`) so the new image is what actually boots.
 DISK_SLOT = os.environ.get("DISK_SLOT", "scsi0")
-# Delete the disk displaced from DISK_SLOT after a successful swap so old
-# images don't accumulate on storage. Set REMOVE_OLD_DISK=0 to keep them.
-REMOVE_OLD_DISK = os.environ.get("REMOVE_OLD_DISK", "1").lower() not in (
-    "0",
-    "false",
-    "no",
-    "",
-)
+# Boot order applied to the VM after import. For a FOG capture the VM must
+# PXE-boot first (net0) so it loads FOS and images the freshly imported disk.
+BOOT_ORDER = os.environ.get("BOOT_ORDER", f"net0;{DISK_SLOT}")
 
 FOG_URL = os.environ.get("FOG_URL", "http://192.168.14.9/fog")
 FOG_API_TOKEN = os.environ.get("FOG_API_TOKEN", "your_global_token")
@@ -44,6 +39,7 @@ TASK_START_TIMEOUT = 600
 
 TEMP_ZIP = Path("temp.zip")
 CONFIG_LINE_PATTERN = re.compile(r"^(?P<key>[^:]+):\s*(?P<value>.+)$")
+DISK_SLOT_PATTERN = re.compile(r"^(?:scsi|sata|virtio|ide)\d+$")
 
 GITHUB_HEADERS = {
     "Authorization": f"Bearer {GH_TOKEN}",
@@ -287,23 +283,6 @@ def get_unused_volumes(config):
     }
 
 
-def build_disk_slot_value(imported_volume, current_disk_value):
-    if not current_disk_value or "," not in current_disk_value:
-        return imported_volume
-    current_options = [
-        option
-        for option in current_disk_value.split(",")[1:]
-        if not option.startswith("size=")
-    ]
-    if not current_options:
-        return imported_volume
-    return f"{imported_volume},{','.join(current_options)}"
-
-
-def volume_id(disk_value):
-    return disk_value.split(",", 1)[0] if disk_value else None
-
-
 def get_vm_status():
     result = run_command(["qm", "status", VM_ID], capture_output=True)
     parts = result.stdout.strip().split()
@@ -322,48 +301,61 @@ def ensure_vm_stopped():
     raise RuntimeError(f"VM {VM_ID} did not stop within timeout; cannot swap disk.")
 
 
-def remove_displaced_disk(old_volume_id):
-    if not old_volume_id:
+def find_disk_slots(config):
+    """Return every slot holding a storage-backed disk owned by this VM (incl.
+    unused), so we can wipe the VM to a clean slate before importing. Only
+    volumes named for this VM (vm-<VM_ID>-...) are touched, so a foreign disk
+    that happens to be attached is never destroyed. CD-ROM/cloud-init drives
+    (media=cdrom) are left alone."""
+    owned_marker = f"vm-{VM_ID}-"
+    slots = []
+    for key, value in config.items():
+        if not value:
+            continue
+        is_unused = key.startswith("unused")
+        is_disk = DISK_SLOT_PATTERN.match(key) and ":" in value and "media=cdrom" not in value
+        if not (is_unused or is_disk):
+            continue
+        if owned_marker not in value:
+            print(
+                f"[!] Skipping '{key}: {value}' — not a VM {VM_ID} volume; "
+                "not deleting it."
+            )
+            continue
+        slots.append(key)
+    return slots
+
+
+def wipe_existing_disks():
+    slots = find_disk_slots(get_vm_config())
+    if not slots:
         return
-    unused = get_unused_volumes(get_vm_config())
-    slot = next(
-        (key for key, value in unused.items() if volume_id(value) == old_volume_id),
-        None,
+    print(f"[*] Removing existing disks from VM {VM_ID}: {', '.join(slots)}")
+    # --force makes unlink physically destroy attached volumes too, not just
+    # detach them to an unused slot.
+    run_command(
+        ["qm", "disk", "unlink", VM_ID, "--idlist", ",".join(slots), "--force"]
     )
-    if slot is None:
-        print(
-            f"[!] Could not locate displaced disk '{old_volume_id}' in unused slots; "
-            "leaving it in place."
-        )
-        return
-    print(f"[*] Removing displaced disk '{old_volume_id}' ({slot})...")
-    run_command(["qm", "set", VM_ID, "--delete", slot])
 
 
 def proxmox_disk_swap(qcow2_path):
     print(f"[*] Importing disk to Proxmox VM {VM_ID}...")
     ensure_vm_stopped()
-    before_config = get_vm_config()
-    before_unused = set(get_unused_volumes(before_config).values())
-    old_disk_value = before_config.get(DISK_SLOT)
+    wipe_existing_disks()
 
     run_command(["qm", "disk", "import", VM_ID, str(qcow2_path), STORAGE])
 
-    after_config = get_vm_config()
-    after_unused = get_unused_volumes(after_config)
-    new_volumes = sorted(set(after_unused.values()) - before_unused)
+    new_volumes = sorted(get_unused_volumes(get_vm_config()).values())
     if len(new_volumes) != 1:
         raise RuntimeError(
-            "Unable to identify the newly imported Proxmox volume. "
-            f"New unused volumes: {new_volumes or 'none'}"
+            "Expected exactly one disk after import (existing disks were wiped "
+            f"first). Found unused volumes: {new_volumes or 'none'}"
         )
 
     imported_volume = new_volumes[0]
-    disk_slot_value = build_disk_slot_value(imported_volume, old_disk_value)
-    run_command(["qm", "set", VM_ID, f"--{DISK_SLOT}", disk_slot_value])
-
-    if REMOVE_OLD_DISK:
-        remove_displaced_disk(volume_id(old_disk_value))
+    run_command(["qm", "set", VM_ID, f"--{DISK_SLOT}", imported_volume])
+    print(f"[*] Setting boot order to '{BOOT_ORDER}'...")
+    run_command(["qm", "set", VM_ID, "--boot", f"order={BOOT_ORDER}"])
 
 
 def host_has_mac(host, target_mac):
