@@ -298,6 +298,28 @@ def proxmox_disk_swap(qcow2_path):
     run_command(["qm", "set", VM_ID, f"--{DISK_SLOT}", disk_slot_value])
 
 
+def host_has_mac(host, target_mac):
+    target = target_mac.lower()
+    candidates = []
+
+    # FOG's host object exposes the primary MAC as "primac" and any
+    # additional MACs in a "macs" list; older code expected a top-level "mac".
+    for key in ("primac", "mac"):
+        value = host.get(key)
+        if isinstance(value, str):
+            candidates.extend(value.split("|"))
+
+    for entry in host.get("macs", []):
+        if isinstance(entry, dict):
+            mac = entry.get("mac")
+            if mac:
+                candidates.append(mac)
+        elif isinstance(entry, str):
+            candidates.append(entry)
+
+    return any(candidate.strip().lower() == target for candidate in candidates)
+
+
 def fog_orchestration(image_name):
     print(f"[*] Registering image '{image_name}' in FOG...")
     img_payload = {
@@ -311,7 +333,10 @@ def fog_orchestration(image_name):
 
     host_data = fog_request("GET", "/host").json()
     hosts = host_data.get("hosts", [])
-    host = next((h for h in hosts if h.get("mac", "").lower() == VM_MAC.lower()), None)
+    host = next(
+        (h for h in hosts if host_has_mac(h, VM_MAC)),
+        None,
+    )
     if host is None:
         raise RuntimeError(f"No FOG host matched VM_MAC '{VM_MAC}'.")
 
