@@ -28,7 +28,10 @@ echo kernel.apparmor_restrict_unprivileged_userns=0 >> new/minimal/etc/sysctl.d/
 # matches the surrounding "#  AutomaticLogin = user1" template lines to set up
 # auto-login) keeps working. Revisit when rebasing on 26.04 (Xorg gone).
 GDM_CONF=new/minimal/etc/gdm3/custom.conf
-[ -f "$GDM_CONF" ] && sed -i 's/^#WaylandEnable=false$/WaylandEnable=false/' "$GDM_CONF"
+[ -f "$GDM_CONF" ] && sed -i \
+    -e 's/^#WaylandEnable=false$/WaylandEnable=false/' \
+    -e 's/^#[ ]*AutomaticLoginEnable =.*$/AutomaticLoginEnable=false/' \
+    "$GDM_CONF"
 
 # gpu-manager scans and probes GPU hardware before starting GDM (Before=display-manager.service).
 # On some hardware it hangs indefinitely, preventing GDM from ever starting (blank screen at boot).
