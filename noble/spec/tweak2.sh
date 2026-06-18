@@ -13,10 +13,6 @@ for svc in snapd snapd.hold snapd.socket snapd.seeded snapd.autoimport snapd.rec
     ln -sf /dev/null "new/minimal/etc/systemd/system/${svc}.service" 2>/dev/null || true
 done
 ln -sf /dev/null "new/minimal/etc/systemd/system/snapd.socket" 2>/dev/null || true
-# Force Xorg in GDM so plymouth-quit-wait doesn't hang when Wayland fails to start
-mkdir -p new/minimal/etc/gdm3
-printf '[daemon]\nWaylandEnable=false\n' > new/minimal/etc/gdm3/custom.conf
-
 rm -rf new/minimal/usr/lib/libreoffice new/minimal/usr/bin/libreoffice
 rm -rf new/minimal/usr/share/locale-langpack
 #echo WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1 >> new/minimal/etc/environment
