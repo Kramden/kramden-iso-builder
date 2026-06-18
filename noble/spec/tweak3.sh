@@ -31,8 +31,5 @@ echo "Running asset.sh" >> /var/log/rc_local
 /usr/share/kramden-provision/scripts/asset.sh >> /var/log/rc_local
 EOF
 chmod a+x new/minimal.standard.live.custom/etc/rc.local
-# Force Xorg in GDM so plymouth-quit-wait doesn't hang when Wayland fails to start
-mkdir -p new/minimal.standard.live.custom/etc/gdm3
-printf '[daemon]\nWaylandEnable=false\n' > new/minimal.standard.live.custom/etc/gdm3/custom.conf
 mkdir -p new/minimal.standard.live.custom/etc/environment.d
 echo "SORTLY_API_KEY=$SORTLY_API_KEY" >> new/minimal.standard.live.custom/etc/environment

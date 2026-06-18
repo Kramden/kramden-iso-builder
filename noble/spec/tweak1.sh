@@ -17,10 +17,6 @@ for svc in snapd snapd.hold snapd.socket snapd.seeded snapd.autoimport snapd.rec
     ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/${svc}.service" 2>/dev/null || true
 done
 ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/snapd.socket" 2>/dev/null || true
-# Force Xorg in GDM so plymouth-quit-wait doesn't hang when Wayland fails to start
-mkdir -p new/minimal.standard.live/etc/gdm3
-printf '[daemon]\nWaylandEnable=false\n' > new/minimal.standard.live/etc/gdm3/custom.conf
-
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/splash/splash toram noprompt noeject/g' new/iso/boot/grub/grub.cfg
