@@ -9,6 +9,10 @@ rm -rf new/minimal/var/snap/ubuntu-desktop-bootstrap
 rm new/{minimal/var/lib/snapd/snaps/ubuntu-desktop-bootstrap*.snap,minimal/var/lib/snapd/seed/snaps/ubuntu-desktop-bootstrap*.snap,minimal/etc/systemd/system/*bootstrap*}
 rm new/minimal/var/lib/snapd/seed/seed.yaml
 rm -rf new/minimal/var/{cache,lib}/snapd new/minimal/snap new/minimal/etc/systemd/system/*snap*
+for svc in snapd snapd.hold snapd.socket snapd.seeded snapd.autoimport snapd.recovery-chooser-trigger; do
+    ln -sf /dev/null "new/minimal/etc/systemd/system/${svc}.service" 2>/dev/null || true
+done
+ln -sf /dev/null "new/minimal/etc/systemd/system/snapd.socket" 2>/dev/null || true
 rm -rf new/minimal/usr/lib/libreoffice new/minimal/usr/bin/libreoffice
 rm -rf new/minimal/usr/share/locale-langpack
 #echo WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1 >> new/minimal/etc/environment

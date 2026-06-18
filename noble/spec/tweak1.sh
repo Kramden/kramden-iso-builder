@@ -13,6 +13,10 @@ rm new/minimal.standard.live/var/lib/snapd/seed/seed.yaml
 wget -O new/minimal.standard.live/usr/bin/screen-test https://github.com/kenvandine/screen-test/releases/download/0.3/screen-test
 chmod a+x new/minimal.standard.live/usr/bin/screen-test
 rm -rf new/minimal.standard.live/var/{cache,lib}/snapd new/minimal.standard.live/snap new/minimal.standard.live/etc/systemd/system/*snap*
+for svc in snapd snapd.hold snapd.socket snapd.seeded snapd.autoimport snapd.recovery-chooser-trigger; do
+    ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/${svc}.service" 2>/dev/null || true
+done
+ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/snapd.socket" 2>/dev/null || true
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/splash/splash toram noprompt noeject/g' new/iso/boot/grub/grub.cfg
