@@ -18,14 +18,9 @@ for svc in snapd snapd.hold snapd.socket snapd.seeded snapd.autoimport snapd.rec
 done
 ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/snapd.socket" 2>/dev/null || true
 # Noble only: force Xorg so GDM works on hardware where Wayland compositor fails silently.
+# Patch the existing file rather than overwriting it so auto-login config is preserved.
 # Revisit when rebasing on 26.04 (Xorg gone) — fix will need proper GPU firmware instead.
-mkdir -p new/minimal.standard.live/etc/gdm3
-cat << 'EOF' > new/minimal.standard.live/etc/gdm3/custom.conf
-[daemon]
-WaylandEnable=false
-AutomaticLoginEnable=true
-AutomaticLogin=ubuntu
-EOF
+sed -i '/^\[daemon\]/a WaylandEnable=false' new/minimal.standard.live/etc/gdm3/custom.conf
 
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
