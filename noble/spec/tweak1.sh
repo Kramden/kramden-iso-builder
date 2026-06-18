@@ -17,16 +17,8 @@ for svc in snapd snapd.hold snapd.socket snapd.seeded snapd.autoimport snapd.rec
     ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/${svc}.service" 2>/dev/null || true
 done
 ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/snapd.socket" 2>/dev/null || true
-# Noble only: force Xorg so GDM works on hardware where Wayland compositor fails silently.
-# Patch in-place so auto-login config casper sets up is preserved.
-# Revisit when rebasing on 26.04 (Xorg gone) — fix will need proper GPU firmware instead.
-GDM_CONF=new/minimal.standard.live/etc/gdm3/custom.conf
-if [ -f "$GDM_CONF" ]; then
-    grep -q "WaylandEnable" "$GDM_CONF" \
-        && sed -i 's/.*WaylandEnable.*/WaylandEnable=false/' "$GDM_CONF" \
-        || sed -i '/^\[daemon\]/a WaylandEnable=false' "$GDM_CONF"
-fi
-
+# Note: the GDM Xorg fix lives in tweak2.sh — /etc/gdm3/custom.conf ships in the
+# base 'minimal' layer, not in this live overlay.
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/splash/splash toram noprompt noeject/g' new/iso/boot/grub/grub.cfg
