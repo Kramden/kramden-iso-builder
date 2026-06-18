@@ -20,7 +20,12 @@ ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/snapd.socket" 2>/
 # Noble only: force Xorg so GDM works on hardware where Wayland compositor fails silently.
 # Revisit when rebasing on 26.04 (Xorg gone) — fix will need proper GPU firmware instead.
 mkdir -p new/minimal.standard.live/etc/gdm3
-printf '[daemon]\nWaylandEnable=false\n' > new/minimal.standard.live/etc/gdm3/custom.conf
+cat << 'EOF' > new/minimal.standard.live/etc/gdm3/custom.conf
+[daemon]
+WaylandEnable=false
+AutomaticLoginEnable=true
+AutomaticLogin=ubuntu
+EOF
 
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
