@@ -21,3 +21,11 @@ rm -f new/*/etc/xdg/autostart/update-notifier.desktop || true
 sed -i 's/1/0/g' new/*/etc/apt/apt.conf.d/20auto-upgrades || true
 echo kernel.apparmor_restrict_unprivileged_unconfined=0 > new/minimal/etc/sysctl.d/99-kramden-local.conf
 echo kernel.apparmor_restrict_unprivileged_userns=0 >> new/minimal/etc/sysctl.d/99-kramden-local.conf
+# Noble only: force Xorg in GDM. On some hardware GDM fails to start under Wayland
+# (blank display). /etc/gdm3/custom.conf ships in the base 'minimal' layer, so it
+# must be patched here, not in the live/custom overlays where the file is absent.
+# Uncomment the existing template line in place so casper's 15autologin sed (which
+# matches the surrounding "#  AutomaticLogin = user1" template lines to set up
+# auto-login) keeps working. Revisit when rebasing on 26.04 (Xorg gone).
+GDM_CONF=new/minimal/etc/gdm3/custom.conf
+[ -f "$GDM_CONF" ] && sed -i 's/^#WaylandEnable=false$/WaylandEnable=false/' "$GDM_CONF"

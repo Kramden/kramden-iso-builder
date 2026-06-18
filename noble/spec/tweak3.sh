@@ -31,12 +31,7 @@ echo "Running asset.sh" >> /var/log/rc_local
 /usr/share/kramden-provision/scripts/asset.sh >> /var/log/rc_local
 EOF
 chmod a+x new/minimal.standard.live.custom/etc/rc.local
-# Noble only: patch top-layer custom.conf if it exists and would shadow the lower-layer fix
-GDM_CONF=new/minimal.standard.live.custom/etc/gdm3/custom.conf
-if [ -f "$GDM_CONF" ]; then
-    grep -q "WaylandEnable" "$GDM_CONF" \
-        && sed -i 's/.*WaylandEnable.*/WaylandEnable=false/' "$GDM_CONF" \
-        || sed -i '/^\[daemon\]/a WaylandEnable=false' "$GDM_CONF"
-fi
+# Note: the GDM Xorg fix lives in tweak2.sh — /etc/gdm3/custom.conf ships in the
+# base 'minimal' layer, not in this custom overlay.
 mkdir -p new/minimal.standard.live.custom/etc/environment.d
 echo "SORTLY_API_KEY=$SORTLY_API_KEY" >> new/minimal.standard.live.custom/etc/environment
