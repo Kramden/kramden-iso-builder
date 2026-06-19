@@ -38,6 +38,31 @@ GDM_CONF=new/minimal/etc/gdm3/custom.conf
 # The live ISO doesn't install proprietary GPU drivers so gpu-manager serves no purpose here.
 ln -sf /dev/null "new/minimal/etc/systemd/system/gpu-manager.service"
 
+# casper-md5check checksums the entire ISO on every boot — expensive I/O that
+# saturates the CPU on slow hardware exactly when GDM is trying to start.
+# Not needed for a spec testing image built from a known-good pipeline.
+ln -sf /dev/null "new/minimal/etc/systemd/system/casper-md5check.service"
+
+# Continuously stream the journal to a plain file so it can be read with cat/tail
+# even when the system is too loaded for live journalctl.
+# Access via: Ctrl+Alt+F2 then  tail -200 /tmp/kramden-journal.log
+mkdir -p new/minimal/etc/systemd/system
+cat > new/minimal/etc/systemd/system/kramden-journal-capture.service << 'EOF'
+[Unit]
+Description=Stream journal to /tmp for post-hang debugging
+After=systemd-journald.service
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'journalctl -f -o short-iso >> /tmp/kramden-journal.log'
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+EOF
+ln -sf /etc/systemd/system/kramden-journal-capture.service \
+    new/minimal/etc/systemd/system/multi-user.target.wants/kramden-journal-capture.service
+
 # Pre-create AccountsService entry for the ubuntu live user so GDM auto-login
 # picks the X11 Ubuntu session explicitly rather than falling back to whatever
 # its default would be with no session history.
