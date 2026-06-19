@@ -21,18 +21,6 @@ rm -f new/*/etc/xdg/autostart/update-notifier.desktop || true
 sed -i 's/1/0/g' new/*/etc/apt/apt.conf.d/20auto-upgrades || true
 echo kernel.apparmor_restrict_unprivileged_unconfined=0 > new/minimal/etc/sysctl.d/99-kramden-local.conf
 echo kernel.apparmor_restrict_unprivileged_userns=0 >> new/minimal/etc/sysctl.d/99-kramden-local.conf
-# Noble only: force Xorg in GDM. On some hardware GDM fails to start under Wayland
-# (blank display). /etc/gdm3/custom.conf ships in the base 'minimal' layer, so it
-# must be patched here, not in the live/custom overlays where the file is absent.
-# Uncomment the existing template line in place so casper's 15autologin sed (which
-# matches the surrounding "#  AutomaticLogin = user1" template lines to set up
-# auto-login) keeps working. Revisit when rebasing on 26.04 (Xorg gone).
-GDM_CONF=new/minimal/etc/gdm3/custom.conf
-[ -f "$GDM_CONF" ] && sed -i \
-    -e 's/^#WaylandEnable=false$/WaylandEnable=false/' \
-    -e 's/^#[ ]*AutomaticLoginEnable =.*$/AutomaticLoginEnable=false/' \
-    "$GDM_CONF"
-
 # gpu-manager scans and probes GPU hardware before starting GDM (Before=display-manager.service).
 # On some hardware it hangs indefinitely, preventing GDM from ever starting (blank screen at boot).
 # The live ISO doesn't install proprietary GPU drivers so gpu-manager serves no purpose here.
@@ -63,11 +51,18 @@ EOF
 ln -sf /etc/systemd/system/kramden-journal-capture.service \
     new/minimal/etc/systemd/system/multi-user.target.wants/kramden-journal-capture.service
 
-# Pre-create AccountsService entry for the ubuntu live user so GDM auto-login
-# picks the X11 Ubuntu session explicitly rather than falling back to whatever
-# its default would be with no session history.
-mkdir -p new/minimal/var/lib/AccountsService/users
-printf '[User]\nXSession=ubuntu-xorg\nIcon=\n' > new/minimal/var/lib/AccountsService/users/ubuntu
+# tracker-miner-fs scans the entire squashfs on first login (no prior index),
+# saturating CPU and I/O until the system stops responding to VT switches.
+mkdir -p new/minimal/etc/systemd/user
+for svc in tracker-miner-fs-3.service tracker-extract-3.service tracker-writeback-3.service; do
+    ln -sf /dev/null "new/minimal/etc/systemd/user/${svc}"
+done
+
+# apt-daily timers can fire on first boot and trigger package list fetches
+# even when auto-upgrades are disabled in apt config.
+for timer in apt-daily apt-daily-upgrade fwupd-refresh; do
+    ln -sf /dev/null "new/minimal/etc/systemd/system/${timer}.timer"
+done
 
 # Autologin on tty2 so Ctrl+Alt+F2 always gives a shell for debugging.
 # The ubuntu live user is created by casper in the initramfs, well before

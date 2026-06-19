@@ -17,9 +17,44 @@ for svc in snapd snapd.hold snapd.socket snapd.seeded snapd.autoimport snapd.rec
     ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/${svc}.service" 2>/dev/null || true
 done
 ln -sf /dev/null "new/minimal.standard.live/etc/systemd/system/snapd.socket" 2>/dev/null || true
-# Note: the GDM Xorg fix lives in tweak2.sh — /etc/gdm3/custom.conf ships in the
-# base 'minimal' layer, not in this live overlay.
 sed -i 's/Try or Install Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/Ubuntu/Kramden Spec/g' new/iso/boot/grub/grub.cfg
 sed -i 's/splash/splash toram noprompt noeject/g' new/iso/boot/grub/grub.cfg
 sed -i 's/30/3/g' new/iso/boot/grub/grub.cfg
+
+# Duplicate the first "Kramden Spec" entry without toram for devices with only 4G RAM
+python3 - new/iso/boot/grub/grub.cfg << 'PYEOF'
+import sys
+path = sys.argv[1]
+with open(path) as f:
+    content = f.read()
+lines = content.split('\n')
+result = []
+i = 0
+inserted = False
+while i < len(lines):
+    line = lines[i]
+    if not inserted and 'menuentry "Kramden Spec" {' in line:
+        block = [line]
+        depth = line.count('{') - line.count('}')
+        j = i + 1
+        while j < len(lines) and depth > 0:
+            block.append(lines[j])
+            depth += lines[j].count('{') - lines[j].count('}')
+            j += 1
+        result.extend(block)
+        ram_block = [
+            l.replace('menuentry "Kramden Spec" {', 'menuentry "Kramden Spec (4G RAM)" {')
+             .replace(' toram', '')
+            for l in block
+        ]
+        result.append('')
+        result.extend(ram_block)
+        inserted = True
+        i = j
+    else:
+        result.append(line)
+        i += 1
+with open(path, 'w') as f:
+    f.write('\n'.join(result))
+PYEOF
