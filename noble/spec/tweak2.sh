@@ -58,14 +58,15 @@ for svc in \
     evolution-source-registry.service evolution-calendar-factory.service \
     evolution-addressbook-factory.service evolution-user-prompter.service \
     goa-daemon.service goa-identity-service.service \
-    gnome-remote-desktop.service; do
+    gnome-remote-desktop.service \
+    update-notifier-crash.path update-notifier-release.path; do
     ln -sf /dev/null "new/minimal/etc/systemd/user/${svc}"
 done
 
 # Mask system services not needed for hardware spec testing
 for svc in \
     whoopsie.service colord.service ModemManager.service speech-dispatcher.service \
-    apport.service; do
+    apport.service unattended-upgrades.service; do
     ln -sf /dev/null "new/minimal/etc/systemd/system/${svc}"
 done
 ln -sf /dev/null "new/minimal/etc/systemd/system/whoopsie.path"
