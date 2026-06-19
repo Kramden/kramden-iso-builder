@@ -51,12 +51,24 @@ EOF
 ln -sf /etc/systemd/system/kramden-journal-capture.service \
     new/minimal/etc/systemd/system/multi-user.target.wants/kramden-journal-capture.service
 
-# tracker-miner-fs scans the entire squashfs on first login (no prior index),
-# saturating CPU and I/O until the system stops responding to VT switches.
+# Mask heavyweight user services not needed for hardware spec testing
 mkdir -p new/minimal/etc/systemd/user
-for svc in tracker-miner-fs-3.service tracker-extract-3.service tracker-writeback-3.service; do
+for svc in \
+    tracker-miner-fs-3.service tracker-extract-3.service tracker-writeback-3.service \
+    evolution-source-registry.service evolution-calendar-factory.service \
+    evolution-addressbook-factory.service evolution-user-prompter.service \
+    goa-daemon.service goa-identity-service.service \
+    gnome-remote-desktop.service; do
     ln -sf /dev/null "new/minimal/etc/systemd/user/${svc}"
 done
+
+# Mask system services not needed for hardware spec testing
+for svc in \
+    whoopsie.service colord.service ModemManager.service speech-dispatcher.service \
+    apport.service; do
+    ln -sf /dev/null "new/minimal/etc/systemd/system/${svc}"
+done
+ln -sf /dev/null "new/minimal/etc/systemd/system/whoopsie.path"
 
 # apt-daily timers can fire on first boot and trigger package list fetches
 # even when auto-upgrades are disabled in apt config.
