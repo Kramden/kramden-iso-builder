@@ -42,4 +42,11 @@ ln -sf /dev/null "new/minimal/etc/systemd/system/gpu-manager.service"
 # picks the X11 Ubuntu session explicitly rather than falling back to whatever
 # its default would be with no session history.
 mkdir -p new/minimal/var/lib/AccountsService/users
-printf '[User]\nXSession=ubuntu\nIcon=\n' > new/minimal/var/lib/AccountsService/users/ubuntu
+printf '[User]\nXSession=ubuntu-xorg\nIcon=\n' > new/minimal/var/lib/AccountsService/users/ubuntu
+
+# Autologin on tty2 so Ctrl+Alt+F2 always gives a shell for debugging.
+# The ubuntu live user is created by casper in the initramfs, well before
+# any getty unit fires, so the autologin target user will exist at runtime.
+mkdir -p new/minimal/etc/systemd/system/getty@tty2.service.d
+printf '[Service]\nExecStart=\nExecStart=-/sbin/agetty --autologin ubuntu --noclear %%I $TERM\n' \
+    > new/minimal/etc/systemd/system/getty@tty2.service.d/autologin.conf
