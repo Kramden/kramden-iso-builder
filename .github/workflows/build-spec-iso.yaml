@@ -11,8 +11,8 @@ jobs:
         id: release-vars
         run: |
           sudo apt install -y curl jq
-          echo URL=$(echo https://releases.ubuntu.com/$(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:beta-desktop:26.04:amd64"].versions["26.04"].items.iso.path' | sed 's/\"//g')) >> "$GITHUB_OUTPUT"
-          echo FILENAME=$(echo $(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:beta-desktop:26.04:amd64"].versions["26.04"].items.iso.path' | sed 's/\"//g' | awk -F / '{print $2}')) >> "$GITHUB_OUTPUT"
+          echo URL=$(echo https://releases.ubuntu.com/$(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:26.04:amd64"].versions["26.04"].items.iso.path' | sed 's/\"//g')) >> "$GITHUB_OUTPUT"
+          echo FILENAME=$(echo $(curl -sL https://releases.ubuntu.com/streams/v1/com.ubuntu.releases:ubuntu.json | jq '.products["com.ubuntu.releases:ubuntu:desktop:26.04:amd64"].versions["26.04"].items.iso.path' | sed 's/\"//g' | awk -F / '{print $2}')) >> "$GITHUB_OUTPUT"
       - uses: jlumbroso/free-disk-space@3e0187054f9c4bc1f55a743792872df36b2d88e0
         with:
           tool-cache: true
