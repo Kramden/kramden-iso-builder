@@ -24,6 +24,12 @@ jobs:
         run: |
           git clone https://github.com/mwhudson/livefs-editor
           cd livefs-editor/
+          # The base ISO ships a cdrom apt source that can't be reached from
+          # inside the mounted squashfs. python-apt's Cache.update() raises
+          # on any source failure by default (unlike apt-get, which just
+          # warns), which aborts add-packages-to-pool before it ever
+          # produces an output ISO. Tolerate it like apt-get does.
+          sed -i 's/cache\.update(AcquireProgress())/cache.update(AcquireProgress(), raise_on_error=False)/' livefs_edit/actions.py
           sudo python3 -m pip install . --break-system-packages
           sudo apt update --fix-missing
           sudo apt install -y xorriso squashfs-tools python3-debian mount
@@ -56,7 +62,7 @@ jobs:
         with:
           name: kramden-iso
           path: ${{ github.workspace }}/kramden*.iso
-          retention-days: 5
+          retention-days: 15
       - name: Build Kramden Image
         run: |
           sudo apt update --fix-missing
@@ -78,4 +84,4 @@ jobs:
         with:
           name: kramden-img
           path: ${{ github.workspace }}/kramden*.qcow2.*
-          retention-days: 5
+          retention-days: 15

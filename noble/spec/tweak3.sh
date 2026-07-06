@@ -22,6 +22,7 @@ NoDisplay=true
 EOF
 
 printf '#!/bin/bash\nnmcli device wifi connect "Kramden Guest" password "%s" name kramden-guest 2>/dev/null || true\n' "$KRAMDEN_GUEST_WIFI" > new/minimal.standard.live.custom/usr/bin/wifi.sh
+printf 'nmcli device wifi connect "Kramden_Guest" password "Kramden1!" name kramden-guest2 2>/dev/null || true\n' >> new/minimal.standard.live.custom/usr/bin/wifi.sh
 chmod a+x new/minimal.standard.live.custom/usr/bin/wifi.sh
 
 cat << 'EOF' > new/minimal.standard.live.custom/etc/rc.local
@@ -30,5 +31,7 @@ echo "Running asset.sh" >> /var/log/rc_local
 /usr/share/kramden-provision/scripts/asset.sh >> /var/log/rc_local
 EOF
 chmod a+x new/minimal.standard.live.custom/etc/rc.local
+# Note: the GDM Xorg fix lives in tweak2.sh — /etc/gdm3/custom.conf ships in the
+# base 'minimal' layer, not in this custom overlay.
 mkdir -p new/minimal.standard.live.custom/etc/environment.d
 echo "SORTLY_API_KEY=$SORTLY_API_KEY" >> new/minimal.standard.live.custom/etc/environment
