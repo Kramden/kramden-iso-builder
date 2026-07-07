@@ -8,7 +8,11 @@ rm new/minimal/snap/bin/*
 rm -rf new/minimal/var/snap/ubuntu-desktop-bootstrap
 rm new/{minimal/var/lib/snapd/snaps/ubuntu-desktop-bootstrap*.snap,minimal/var/lib/snapd/seed/snaps/ubuntu-desktop-bootstrap*.snap,minimal/etc/systemd/system/*bootstrap*}
 rm new/minimal/var/lib/snapd/seed/seed.yaml
-rm -rf new/minimal/var/{cache,lib}/snapd new/minimal/snap new/minimal/etc/systemd/system/*snap*
+rm -rf new/minimal/var/{cache,lib}/snapd new/minimal/var/snap new/minimal/snap
+rm -rf new/minimal/lib/systemd/system/snapd* new/minimal/usr/lib/systemd/system/snapd*
+rm -rf new/minimal/usr/lib/systemd/system-environment-generators/snapd*
+rm -rf new/minimal/usr/lib/systemd/user/snapd* new/minimal/usr/lib/systemd/user/sockets.target.wants/snapd*
+rm -rf new/minimal/etc/systemd/system/*snap* new/minimal/etc/systemd/system/*/*snap*
 rm -rf new/minimal/usr/lib/libreoffice new/minimal/usr/bin/libreoffice
 rm -rf new/minimal/usr/share/locale-langpack
 #echo WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1 >> new/minimal/etc/environment
