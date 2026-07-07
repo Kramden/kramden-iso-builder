@@ -71,8 +71,11 @@ jobs:
           )
           new = (
               "    for squash_name in get_all_squash_names(ctxt):\n"
-              "        new_fs = ctxt.edit_squashfs(squash_name)\n"
-              "        key_path = f'{new_fs}/etc/apt/trusted.gpg.d/custom-iso-key.gpg'\n"
+              "        new_fs = ctxt.edit_squashfs(squash_name, add_sys_mounts=False)\n"
+              "        key_dir = f'{new_fs}/etc/apt/trusted.gpg.d'\n"
+              "        if not os.path.isdir(key_dir):\n"
+              "            continue\n"
+              "        key_path = f'{key_dir}/custom-iso-key.gpg'\n"
               "        with open(key_path, 'w') as new_key:\n"
               "            ctxt.run(['gpg', '--home', gpghome, '--export'], stdout=new_key)\n"
           )
