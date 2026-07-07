@@ -49,16 +49,19 @@ jobs:
           PATCH
           # resign_pool() re-signs the /cdrom pool's Release file with a
           # fresh one-time key after each add-packages/add-debs-to-pool
-          # call, but only installs the trust anchor into
-          # get_squash_names(ctxt)[0] -- a layer name *guessed* from the
-          # kernel cmdline's layerfs-path=, by splitting it on dots. On
-          # this base ISO that guess doesn't match the squashfs actually
-          # booted (get_squash_names()[0] resolves to "minimal", but the
-          # live/install environment boots "minimal.standard.live"),
-          # so the key never becomes trusted and apt-get update fails
-          # with NO_PUBKEY on file:/cdrom during install. Write the key
-          # into every squashfs that actually exists in casper/ instead
-          # of relying on the guessed layer name.
+          # call, and trusts that key by dropping it into
+          # /etc/apt/trusted.gpg.d in one squashfs layer. That's not
+          # enough on this base ISO: casper's auto-generated
+          # /etc/apt/sources.list.d/cdrom.sources pins an inline
+          # Signed-By key block (the *real* Ubuntu archive key, baked
+          # in at image build time) which bypasses the trusted.gpg.d
+          # scan entirely for that source. So no matter what we trust
+          # globally, apt-get update in-target still fails with
+          # NO_PUBKEY on file:/cdrom, since it's checking the pool's
+          # new signature against the old, unrelated archive key.
+          # Trust the new key in every squashfs that actually exists
+          # in casper/ (rather than a guessed single layer name) *and*
+          # rewrite cdrom.sources' Signed-By to reference it.
           python3 - <<'PATCH'
           path = "livefs_edit/actions.py"
           with open(path) as f:
@@ -70,14 +73,36 @@ jobs:
               "        ctxt.run(['gpg', '--home', gpghome, '--export'], stdout=new_key)\n"
           )
           new = (
+              "    armored_key = ctxt.run(\n"
+              "        ['gpg', '--home', gpghome, '--armor', '--export'],\n"
+              "        stdout=subprocess.PIPE).stdout.decode()\n"
+              "    # deb822 multi-line values may not end in a newline, may\n"
+              "    # not contain literal blank lines (a lone '.' stands in\n"
+              "    # for one), and every line after the first must be\n"
+              "    # indented -- reproduce that framing around the armor\n"
+              "    # block ourselves.\n"
+              "    key_lines = armored_key.strip('\\n').splitlines()\n"
+              "    signed_by = key_lines[0] + '\\n' + '\\n'.join(\n"
+              "        ' ' + (ln if ln else '.') for ln in key_lines[1:])\n"
+              "\n"
               "    for squash_name in get_all_squash_names(ctxt):\n"
               "        new_fs = ctxt.edit_squashfs(squash_name, add_sys_mounts=False)\n"
               "        key_dir = f'{new_fs}/etc/apt/trusted.gpg.d'\n"
-              "        if not os.path.isdir(key_dir):\n"
-              "            continue\n"
-              "        key_path = f'{key_dir}/custom-iso-key.gpg'\n"
-              "        with open(key_path, 'w') as new_key:\n"
-              "            ctxt.run(['gpg', '--home', gpghome, '--export'], stdout=new_key)\n"
+              "        if os.path.isdir(key_dir):\n"
+              "            key_path = f'{key_dir}/custom-iso-key.gpg'\n"
+              "            with open(key_path, 'w') as new_key:\n"
+              "                ctxt.run(\n"
+              "                    ['gpg', '--home', gpghome, '--export'],\n"
+              "                    stdout=new_key)\n"
+              "        cdrom_sources = (\n"
+              "            f'{new_fs}/etc/apt/sources.list.d/cdrom.sources')\n"
+              "        if os.path.exists(cdrom_sources):\n"
+              "            from debian import deb822\n"
+              "            with open(cdrom_sources) as f:\n"
+              "                stanza = deb822.Deb822(f)\n"
+              "            stanza['Signed-By'] = signed_by\n"
+              "            with open(cdrom_sources, 'wb') as f:\n"
+              "                stanza.dump(f)\n"
           )
           assert content.count(old) == 1, f"expected 1 match, found {content.count(old)}"
           content = content.replace(old, new)
