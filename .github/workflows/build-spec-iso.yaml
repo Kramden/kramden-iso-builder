@@ -21,6 +21,23 @@ jobs:
         run: |
           git clone https://github.com/mwhudson/livefs-editor
           cd livefs-editor/
+          # The base ISO ships a cdrom apt source that can't be reached from
+          # inside the mounted squashfs. install-packages runs a raw
+          # `apt-get update` with check=True, which aborts the whole build
+          # the moment that one source fails, even though the packages we
+          # need come from sources that do succeed. Tolerate it like
+          # apt-get itself normally would.
+          python3 - <<'PATCH'
+          path = "livefs_edit/actions.py"
+          with open(path) as f:
+              content = f.read()
+          old = "    ctxt.run(['chroot', base, 'apt-get', 'update'])\n    env = os.environ.copy()"
+          new = "    ctxt.run(['chroot', base, 'apt-get', 'update'], check=False)\n    env = os.environ.copy()"
+          assert content.count(old) == 1, f"expected 1 match, found {content.count(old)}"
+          content = content.replace(old, new)
+          with open(path, "w") as f:
+              f.write(content)
+          PATCH
           sudo python3 -m pip install . --break-system-packages
           sudo apt update --fix-missing
           sudo apt install -y xorriso squashfs-tools python3-debian mount
