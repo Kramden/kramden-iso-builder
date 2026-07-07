@@ -6,7 +6,6 @@
 - name: add-packages-to-pool
   packages:
     - gimp
-    - scratch
     - ubuntu-restricted-addons
     - ubuntu-restricted-extras
     - landscape-client
@@ -17,4 +16,3 @@
     - krita
     - openshot-qt
     - gir1.2-webkit2-4.1
-    - cheese
