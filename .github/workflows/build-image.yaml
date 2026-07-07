@@ -47,6 +47,40 @@ jobs:
           with open(path, "w") as f:
               f.write(content)
           PATCH
+          # resign_pool() re-signs the /cdrom pool's Release file with a
+          # fresh one-time key after each add-packages/add-debs-to-pool
+          # call, but only installs the trust anchor into
+          # get_squash_names(ctxt)[0] -- a layer name *guessed* from the
+          # kernel cmdline's layerfs-path=, by splitting it on dots. On
+          # this base ISO that guess doesn't match the squashfs actually
+          # booted (get_squash_names()[0] resolves to "minimal", but the
+          # live/install environment boots "minimal.standard.live"),
+          # so the key never becomes trusted and apt-get update fails
+          # with NO_PUBKEY on file:/cdrom during install. Write the key
+          # into every squashfs that actually exists in casper/ instead
+          # of relying on the guessed layer name.
+          python3 - <<'PATCH'
+          path = "livefs_edit/actions.py"
+          with open(path) as f:
+              content = f.read()
+          old = (
+              "    new_fs = ctxt.edit_squashfs(get_squash_names(ctxt)[0])\n"
+              "    key_path = f'{new_fs}/etc/apt/trusted.gpg.d/custom-iso-key.gpg'\n"
+              "    with open(key_path, 'w') as new_key:\n"
+              "        ctxt.run(['gpg', '--home', gpghome, '--export'], stdout=new_key)\n"
+          )
+          new = (
+              "    for squash_name in get_all_squash_names(ctxt):\n"
+              "        new_fs = ctxt.edit_squashfs(squash_name)\n"
+              "        key_path = f'{new_fs}/etc/apt/trusted.gpg.d/custom-iso-key.gpg'\n"
+              "        with open(key_path, 'w') as new_key:\n"
+              "            ctxt.run(['gpg', '--home', gpghome, '--export'], stdout=new_key)\n"
+          )
+          assert content.count(old) == 1, f"expected 1 match, found {content.count(old)}"
+          content = content.replace(old, new)
+          with open(path, "w") as f:
+              f.write(content)
+          PATCH
           sudo python3 -m pip install . --break-system-packages
           sudo apt update --fix-missing
           sudo apt install -y xorriso squashfs-tools python3-debian mount
