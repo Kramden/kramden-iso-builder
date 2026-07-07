@@ -58,7 +58,7 @@ echo "Creating $out"
 echo "Creating base image"
 #livefs-edit $in out/base.iso --action-yaml spec.yaml
 echo "Adding local debs to pool"
-livefs-edit $in out/spec0.iso --add-apt-repository ppa:kramden-team/kramden-test --install-packages git guvcview python3-psutil python3-pyudev python3-reportlab python3-requests kramden-device kramden-provision kramden-spec nvme-cli nwipe
+livefs-edit $in out/spec0.iso --add-apt-repository ppa:kramden-team/kramden-test --install-packages git guvcview python3-psutil python3-pyudev python3-reportlab python3-requests kramden-device kramden-provision kramden-spec nvme-cli nwipe gnome-snapshot
 livefs-edit out/spec0.iso out/spec1.iso --install-debs debs/{srvadmin*,command*,firefox*}.deb
 rm -f out/spec0.iso
 livefs-edit out/spec1.iso out/spec2.iso --cp $PWD/kramden-spec-iso new/iso/kramden-spec-iso
