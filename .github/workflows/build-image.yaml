@@ -136,23 +136,6 @@ jobs:
           echo RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))>> "$GITHUB_OUTPUT"
           echo $(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
           cd ${{ github.workspace }}
-      - name: DEBUG verify autoinstall wiring
-        run: |
-          ISO=$(ls -t ${{ github.workspace }}/kramden*.iso | head -n1)
-          echo "Inspecting $ISO"
-          mkdir -p /tmp/isocheck
-          xorriso -indev "$ISO" -osirrox on -extract /autoinstall.yaml /tmp/isocheck/autoinstall.yaml -extract /boot/grub/grub.cfg /tmp/isocheck/grub.cfg
-          echo "=== autoinstall.yaml present? ==="
-          ls -la /tmp/isocheck/autoinstall.yaml || echo "MISSING"
-          echo "=== autoinstall.yaml size/head ==="
-          wc -l /tmp/isocheck/autoinstall.yaml || true
-          head -5 /tmp/isocheck/autoinstall.yaml || true
-          echo "=== grub.cfg linux/--- lines ==="
-          grep -n -- '---' /tmp/isocheck/grub.cfg || echo "NO --- LINES FOUND"
-          echo "=== grub.cfg autoinstall occurrences ==="
-          grep -n "autoinstall" /tmp/isocheck/grub.cfg || echo "NO autoinstall STRING FOUND IN GRUB.CFG"
-          echo "=== full grub.cfg menuentry blocks ==="
-          grep -n -A3 "menuentry " /tmp/isocheck/grub.cfg || true
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
