@@ -405,11 +405,29 @@ def fog_orchestration(image_name):
         raise RuntimeError(f"No FOG host matched VM_MAC '{VM_MAC}'.")
 
     host_id = extract_required(host, "id", "host lookup")
+    print(
+        f"    [debug] matched host id={host_id} name={host.get('name')} "
+        f"current imageID={host.get('imageID')} -> new imageID={new_img_id}"
+    )
 
     fog_request("PUT", f"/host/{host_id}/edit", json={"imageID": new_img_id})
-    fog_request("POST", f"/host/{host_id}/task", json={"taskTypeID": 1})
+    print(
+        f"[*] Host {host_id} assigned image ID {new_img_id}; queuing Capture task "
+        f"(taskTypeID={TASK_TYPE_CAPTURE})..."
+    )
+    fog_request(
+        "POST", f"/host/{host_id}/task", json={"taskTypeID": TASK_TYPE_CAPTURE}
+    )
     return host_id
 
+
+# FOG taskTypeID values (from FOG's own taskTypes table: ttID=1 -> 'Deploy',
+# ttID=2 -> 'Capture'). We must request a Capture here — a Deploy task pushes
+# the image *already stored on the FOG server* back down onto the VM's disk
+# (overwriting the freshly imported qcow2) instead of uploading the disk's
+# contents into the image store, which silently defeats the whole point of
+# this script while still reporting "success".
+TASK_TYPE_CAPTURE = 2
 
 # FOG task stateID values.
 TASK_STATES = {
@@ -437,6 +455,7 @@ def wait_for_completion(host_id):
     start_time = time.time()
     saw_active_task = False
     last_status = None
+    checked_task_type = False
 
     while True:
         active_tasks = fog_request("GET", "/task/active").json().get("tasks", [])
@@ -447,6 +466,21 @@ def wait_for_completion(host_id):
 
         if host_task is not None:
             saw_active_task = True
+
+            if not checked_task_type:
+                checked_task_type = True
+                print(f"    [debug] active task raw fields: {host_task}")
+                task_type_id = str(
+                    host_task.get("typeID", host_task.get("taskTypeID", ""))
+                )
+                if task_type_id and task_type_id != str(TASK_TYPE_CAPTURE):
+                    print(
+                        f"    [!] WARNING: active task type is '{task_type_id}', "
+                        f"expected '{TASK_TYPE_CAPTURE}' (Capture). This task will "
+                        "NOT upload the new disk to FOG's image store — the "
+                        "existing stored image will be left unchanged."
+                    )
+
             status = describe_task(host_task)
             if status != last_status:
                 print(f"    [~] {status}")
