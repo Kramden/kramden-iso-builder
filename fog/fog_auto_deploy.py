@@ -398,6 +398,11 @@ def fog_orchestration(image_name):
             "path": image_name.replace(".", "_"),
             "imageTypeID": "2",
             "osID": "50",
+            # FOG's /image/create only sets fields present in the JSON body;
+            # isEnabled isn't in databaseFieldsRequired, so omitting it
+            # leaves the image disabled and any task against it fails with
+            # "Image is not enabled".
+            "isEnabled": 1,
         }
         print(f"    [debug] image/create payload: {img_payload}")
         img_resp = fog_request("POST", "/image/create", json=img_payload).json()
