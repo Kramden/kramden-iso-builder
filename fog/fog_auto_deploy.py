@@ -398,6 +398,12 @@ def fog_orchestration(image_name):
             "path": image_name.replace(".", "_"),
             "imageTypeID": "2",
             "osID": "50",
+            # imagePartitionTypeID 1 = "Everything" (save the partition
+            # table, all partitions, and bootloaders). Like isEnabled, this
+            # isn't in databaseFieldsRequired, so omitting it leaves the
+            # column at its invalid default and FOG's capture script fails
+            # with "No img part type passed (savePartitionTablesAndBootLoaders)".
+            "imagePartitionTypeID": "1",
             # FOG's /image/create only sets fields present in the JSON body;
             # isEnabled isn't in databaseFieldsRequired, so omitting it
             # leaves the image disabled and any task against it fails with
