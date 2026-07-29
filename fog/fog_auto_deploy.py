@@ -386,12 +386,20 @@ def fog_orchestration(image_name):
         new_img_id = IMAGE_ID
     else:
         print(f"[*] Registering image '{image_name}' in FOG...")
+        # imageTypeID 2 = "Multiple Partition Image - Single Disk (Not
+        # Resizable)". The kramden build has no UEFI firmware in its build VM
+        # (noble/autoinstall.sh), so curtin's default "direct" layout creates
+        # a GPT disk with a tiny bios_grub partition (where GRUB actually
+        # lives) plus the ext4 root partition. imageTypeID 1 ("Single
+        # Partition") only captures one partition — it drops bios_grub and
+        # the deployed disk has no bootloader. osID 50 = Linux.
         img_payload = {
             "name": image_name,
             "path": image_name.replace(".", "_"),
-            "imageTypeID": "1",
-            "osID": "1",
+            "imageTypeID": "2",
+            "osID": "50",
         }
+        print(f"    [debug] image/create payload: {img_payload}")
         img_resp = fog_request("POST", "/image/create", json=img_payload).json()
         new_img_id = extract_required(img_resp, "id", "image creation")
 

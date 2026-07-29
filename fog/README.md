@@ -165,6 +165,7 @@ The script performs the following sequence:
 ## Operational notes
 
 - The workflow assumes the latest successful GitHub Actions artifact on `GH_BRANCH` is the one you want to deploy.
-- The script creates a new FOG image entry for each downloaded image filename rather than reusing an existing image definition.
+- The script creates a new FOG image entry for each downloaded image filename rather than reusing an existing image definition, using `imageTypeID: 2` ("Multiple Partition Image - Single Disk, Not Resizable") and `osID: 50` (Linux). The kramden build VM has no UEFI firmware, so curtin gives the disk a GPT table with a tiny `bios_grub` partition (holding GRUB) plus the ext4 root partition — a single-partition image type would silently drop `bios_grub` and produce a non-bootable capture.
+- If you're reusing an existing image via `IMAGE_ID`, make sure that image's type in the FOG UI (Image Management > *image* > Type) is also "Multiple Partition Image" — the script can't change the type of an image it didn't create.
 - The script now fails fast on command failures, HTTP errors, missing config placeholders, and missing API fields instead of continuing with partial state.
 - Cleanup happens after FOG reports that the host's capture task started and then finished, which keeps large temporary image files from accumulating on the Proxmox host.
