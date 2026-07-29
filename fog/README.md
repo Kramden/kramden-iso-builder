@@ -105,6 +105,17 @@ python3 fog_auto_deploy.py
 python3 fog_auto_deploy.py
 ```
 
+## Running from cron
+
+Copy `env.sh.example` to `env.sh` and fill in real values (`env.sh` is
+git-ignored since it holds credentials), then use `run_fog_auto_deploy.sh` to
+source it and invoke the script. Add a weekly crontab entry to run it every
+Sunday at 2 AM:
+
+```
+0 2 * * 0 /root/kramden-iso-builder/fog/run_fog_auto_deploy.sh >> /var/log/fog_auto_deploy.log 2>&1
+```
+
 ## End-to-end deployment flow
 
 The script performs the following sequence:
