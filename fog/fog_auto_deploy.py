@@ -423,6 +423,8 @@ def fog_orchestration(image_name):
         f"current imageID={host.get('imageID')} -> new imageID={new_img_id}"
     )
 
+    cancel_stale_task(host_id)
+
     fog_request("PUT", f"/host/{host_id}/edit", json={"imageID": new_img_id})
     print(
         f"[*] Host {host_id} assigned image ID {new_img_id}; queuing Capture task "
@@ -432,6 +434,28 @@ def fog_orchestration(image_name):
         "POST", f"/host/{host_id}/task", json={"taskTypeID": TASK_TYPE_CAPTURE}
     )
     return host_id
+
+
+def cancel_stale_task(host_id):
+    """Clear any task FOG still considers active for this host before
+    queuing a new one. A crashed or interrupted prior run (e.g. hitting the
+    "Image is not enabled" error) can leave a task in a queued/imaging state
+    forever, since nothing PXE-boots to consume it — and FOG refuses to
+    create a new task while one is active ("Host is already a member of an
+    active task"). This makes re-runs (cron or manual) self-healing instead
+    of requiring a manual cancel in the FOG UI."""
+    active_tasks = fog_request("GET", "/task/active").json().get("tasks", [])
+    stale = next(
+        (t for t in active_tasks if str(t.get("hostID")) == str(host_id)),
+        None,
+    )
+    if stale is None:
+        return
+    print(
+        f"[!] Host {host_id} already has an active task (id={stale.get('id')}, "
+        f"{describe_task(stale)}); cancelling it before queuing a new one..."
+    )
+    fog_request("DELETE", f"/host/{host_id}/cancel")
 
 
 # FOG taskTypeID values (from FOG's own taskTypes table: ttID=1 -> 'Deploy',
