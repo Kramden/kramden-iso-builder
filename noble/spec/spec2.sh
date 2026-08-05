@@ -22,8 +22,8 @@ if [ -z "$SORTLY_API_KEY" ]; then
     exit 1
 fi
 
-if [ -z "$KRAMDEN_GUEST_WIFI" ]; then
-    echo "ERROR: KRAMDEN_GUEST_WIFI is not set!"
+if [ -z "$KRAMDEN_SPEC_WIFI" ]; then
+    echo "ERROR: KRAMDEN_SPEC_WIFI is not set!"
     exit 1
 fi
 

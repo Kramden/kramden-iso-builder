@@ -47,11 +47,8 @@ Categories=Utility;
 NoDisplay=true
 EOF
 
-cat << 'EOF' > new/minimal.standard.live.custom/usr/bin/wifi.sh
-#!/bin/bash
-nmcli device wifi connect "Kramden Speccing" password glassjazz25 name kramden-speccing 2>/dev/null || true
-nmcli device wifi connect "posey" password snickers name posey 2>/dev/null || true
-EOF
+printf '#!/bin/bash\nnmcli device wifi connect "Kramden Speccing" password "%s" name kramden-speccing 2>/dev/null || true\n' "$KRAMDEN_SPEC_WIFI" > new/minimal.standard.live.custom/usr/bin/wifi.sh
+printf 'nmcli device wifi connect "posey" password "snickers" name posey 2>/dev/null || true\n' >> new/minimal.standard.live.custom/usr/bin/wifi.sh
 chmod a+x new/minimal.standard.live.custom/usr/bin/wifi.sh
 
 cat << 'EOF' > new/minimal.standard.live.custom/etc/rc.local
