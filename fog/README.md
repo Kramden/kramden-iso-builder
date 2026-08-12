@@ -20,7 +20,7 @@ Before running `fog_auto_deploy.py`, update the configuration block at the top o
 ```python
 GH_REPO = "Kramden/kramden-iso-builder"
 GH_WORKFLOW = "build-image.yaml"
-GH_BRANCH = "noble"
+GH_BRANCH = os.environ.get("GH_BRANCH", "noble")
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = os.environ.get("VM_ID", "999")
@@ -41,7 +41,7 @@ The script prefers environment variables when they are set, which makes it easie
 | --- | --- |
 | `GH_REPO` | GitHub repository that publishes the build artifact |
 | `GH_WORKFLOW` | Workflow file to inspect for successful runs |
-| `GH_BRANCH` | Branch that the workflow run must come from |
+| `GH_BRANCH` | Branch that the workflow run must come from; can be supplied with the `GH_BRANCH` environment variable |
 | `GH_TOKEN` | Fine-grained GitHub token used to download the artifact; can be supplied with the `GH_TOKEN` environment variable |
 | `VM_ID` | Proxmox VM ID for the golden VM; can be supplied with the `VM_ID` environment variable |
 | `STORAGE` | Proxmox storage target used by `qm disk import`; can be supplied with the `STORAGE` environment variable |

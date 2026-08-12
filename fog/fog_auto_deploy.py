@@ -12,7 +12,7 @@ import requests
 # --- CONFIGURATION ---
 GH_REPO = "Kramden/kramden-iso-builder"
 GH_WORKFLOW = "build-image.yaml"
-GH_BRANCH = "noble"
+GH_BRANCH = os.environ.get("GH_BRANCH", "noble")
 GH_TOKEN = os.environ.get("GH_TOKEN", "your_github_read_only_token")
 
 VM_ID = os.environ.get("VM_ID", "999")
