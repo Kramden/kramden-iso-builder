@@ -1,6 +1,10 @@
 #!/bin/bash
 #
 #
+# See noble/kramden.sh for why this needs its own set -e: it's invoked from
+# CI as a separate script process, so the workflow step's own -eo pipefail
+# can't see failures inside it.
+set -euo pipefail
 
 dir=$(dirname $(realpath $0))
 in=$1
@@ -8,13 +12,13 @@ in=$1
 if [ $UID != 0 ];
 then
 	echo "Must be run with root privileges, for example with sudo"
-	exit
+	exit 1
 fi
 
 if [ $# -lt 1 ];
 then
 	echo "USAGE: sudo $0 SOURCE_ISO"
-	exit
+	exit 1
 fi
 
 if [ -z "$SORTLY_API_KEY" ]; then
@@ -29,7 +33,7 @@ fi
 
 if [ -d $dir/out ];
 then
-    rm $dir/out/* 2>/dev/null
+    rm -f $dir/out/*
 else
     mkdir $dir/out
 fi
