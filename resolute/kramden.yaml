@@ -1,6 +1,9 @@
 - name: add-cmdline-arg
   arg: autoinstall
   persist: false
+- name: add-cmdline-arg
+  arg: console=ttyS0,115200n8
+  persist: false
 - name: add-apt-repository
   repo: ppa:kramden-team/kramden
 - name: add-packages-to-pool
