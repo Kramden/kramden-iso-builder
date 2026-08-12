@@ -130,6 +130,7 @@ The script performs the following sequence:
    - Looks for an artifact whose name ends with `.qcow2.zst`.
 
 3. **Download and extract the artifact**
+   - Peeks at the remote zip's central directory via HTTP Range requests (a handful of small requests, not the full archive) and prints the `.qcow2.zst` filename before the real download starts, so you can confirm it's the build you expect.
    - Downloads the artifact archive to `temp.zip`.
    - Extracts the GitHub artifact wrapper with Python's built-in zip support.
    - Decompresses the `.zst` file into a raw `.qcow2`.

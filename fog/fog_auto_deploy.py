@@ -1,4 +1,5 @@
 import argparse
+import io
 import os
 import re
 import subprocess
@@ -110,8 +111,8 @@ def github_get(url, **kwargs):
     return response
 
 
-def download_artifact_archive(url, destination):
-    redirect_response = github_get(url, allow_redirects=False)
+def resolve_artifact_download_url(api_url):
+    redirect_response = github_get(api_url, allow_redirects=False)
     if redirect_response.status_code != 302:
         raise RuntimeError(
             "GitHub did not return an artifact download redirect. "
@@ -121,7 +122,10 @@ def download_artifact_archive(url, destination):
     download_url = redirect_response.headers.get("Location")
     if not download_url:
         raise RuntimeError("GitHub artifact download response did not include a Location header.")
+    return download_url
 
+
+def download_artifact_archive(download_url, destination):
     with requests.get(download_url, stream=True, timeout=300) as response:
         response.raise_for_status()
         with destination.open("wb") as handle:
@@ -136,6 +140,75 @@ def download_artifact_archive(url, destination):
             "Downloaded GitHub artifact is not a zip archive. "
             f"Response preview: {preview or '(empty response)'}"
         )
+
+
+class _HTTPRangeReader(io.RawIOBase):
+    """Minimal seekable, read-only file-like object that lazily fetches byte
+    ranges over HTTP. Lets zipfile.ZipFile read just a remote zip's central
+    directory -- a handful of small requests near the end of the file --
+    instead of downloading the whole archive, so the .qcow2.zst member name
+    can be printed before committing to the real, multi-GB download."""
+
+    def __init__(self, url, size):
+        self._url = url
+        self._size = size
+        self._pos = 0
+
+    def seekable(self):
+        return True
+
+    def readable(self):
+        return True
+
+    def seek(self, offset, whence=io.SEEK_SET):
+        if whence == io.SEEK_SET:
+            self._pos = offset
+        elif whence == io.SEEK_CUR:
+            self._pos += offset
+        elif whence == io.SEEK_END:
+            self._pos = self._size + offset
+        else:
+            raise ValueError(f"Unsupported whence: {whence}")
+        return self._pos
+
+    def tell(self):
+        return self._pos
+
+    def readinto(self, buffer):
+        length = len(buffer)
+        if length == 0 or self._pos >= self._size:
+            return 0
+        end = min(self._pos + length, self._size) - 1
+        response = requests.get(
+            self._url,
+            headers={"Range": f"bytes={self._pos}-{end}"},
+            timeout=REQUEST_TIMEOUT,
+        )
+        response.raise_for_status()
+        data = response.content
+        buffer[: len(data)] = data
+        self._pos += len(data)
+        return len(data)
+
+
+def peek_qcow2_filename(download_url):
+    """Best-effort: read the remote zip's central directory via HTTP Range
+    requests to find the .qcow2.zst member name before downloading the full
+    archive. Returns None on any failure (e.g. the storage backend doesn't
+    support Range requests) -- this is purely informational and must never
+    block the real download."""
+    try:
+        head = requests.head(download_url, timeout=REQUEST_TIMEOUT, allow_redirects=True)
+        head.raise_for_status()
+        size = int(head.headers["Content-Length"])
+        reader = _HTTPRangeReader(download_url, size)
+        with zipfile.ZipFile(reader) as archive:
+            zst_members = [
+                member for member in archive.namelist() if member.endswith(".qcow2.zst")
+            ]
+        return zst_members[0] if len(zst_members) == 1 else None
+    except (requests.exceptions.RequestException, zipfile.BadZipFile, KeyError, ValueError, OSError):
+        return None
 
 
 def fog_request(method, path, **kwargs):
@@ -579,7 +652,18 @@ def main():
             raise RuntimeError(f"Artifact '{zst_path}' does not exist.")
         print(f"[*] Using existing artifact {zst_path}...")
     else:
-        download_url, artifact_name = get_latest_artifact()
+        api_url, artifact_name = get_latest_artifact()
+        download_url = resolve_artifact_download_url(api_url)
+
+        qcow2_name = peek_qcow2_filename(download_url)
+        if qcow2_name:
+            print(f"[*] Build artifact contains image '{qcow2_name}'.")
+        else:
+            print(
+                "[!] Could not determine the image filename before "
+                "downloading (peek failed); proceeding anyway."
+            )
+
         zst_path = download_and_extract(download_url, artifact_name)
 
     raw_qcow2 = decompress_artifact(zst_path)
