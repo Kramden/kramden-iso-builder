@@ -60,7 +60,7 @@ jobs:
       - name: Build Kramden Image
         run: |
           sudo apt update --fix-missing
-          sudo apt install -y qemu-system-x86 qemu-utils zstd coreutils
+          sudo apt install -y qemu-system-x86 qemu-utils zstd coreutils ovmf
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
           export RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
