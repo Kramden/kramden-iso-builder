@@ -40,7 +40,10 @@ rm $dir/debs/*
 wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 cd $dir/debs
-for p in kramden-desktop kramden-overrides kramden-provision; do pull-ppa-debs ppa:kramden-team/kramden $p; done
+# Without an explicit release, pull-ppa-debs defaults to Ubuntu's current
+# development series (Launchpad's "devel" release) rather than the noble
+# target this pipeline builds for, so pin it explicitly.
+for p in kramden-desktop kramden-overrides kramden-provision; do pull-ppa-debs ppa:kramden-team/kramden $p noble; done
 
 cd $dir
 
