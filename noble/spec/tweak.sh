@@ -50,7 +50,6 @@ EOF
 cat << 'EOF' > new/minimal.standard.live.custom/usr/bin/wifi.sh
 #!/bin/bash
 nmcli device wifi connect "Kramden Guest" password iamatkramden name kramden-guest 2>/dev/null || true
-nmcli device wifi connect "posey" password snickers name posey 2>/dev/null || true
 EOF
 chmod a+x new/minimal.standard.live.custom/usr/bin/wifi.sh
 

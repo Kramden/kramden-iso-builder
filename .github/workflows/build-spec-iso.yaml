@@ -51,8 +51,8 @@ jobs:
       - name: Build Kramden Spec ISO
         id: build-iso
         env:                                                                      
-          SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}            
-          KRAMDEN_GUEST_WIFI: ${{ secrets.KRAMDEN_GUEST_WIFI }}            
+          SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}
+          KRAMDEN_SPEC_WIFI: ${{ secrets.KRAMDEN_SPEC_WIFI }}
         run: |
           sudo apt install -y ubuntu-dev-tools wget
           cd resolute/spec

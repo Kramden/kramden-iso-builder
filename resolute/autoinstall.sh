@@ -1,10 +1,15 @@
 #!/bin/bash
 #
 #
+# See resolute/kramden.sh for why this needs its own set -e: it's invoked
+# from CI as a separate script process, so the workflow step's own
+# -eo pipefail can't see failures inside it.
+set -euo pipefail
+
 if [ $# -lt 2 ];
 then
         echo "USAGE: $0 SOURCE_ISO TARGET_DISK_IMG"
-        exit
+        exit 1
 fi
 
 source=$1

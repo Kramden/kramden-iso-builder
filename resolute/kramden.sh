@@ -1,6 +1,13 @@
 #!/bin/bash
 #
 #
+# Errors (e.g. a failed pull-ppa-debs or livefs-edit call) must abort the
+# script. This is invoked from CI as `sudo ./kramden.sh ...`, a separate
+# process with its own shebang -- GitHub Actions' default `-eo pipefail` on
+# the workflow step's own shell can't see into it, so without set -e here a
+# failure partway through is silently swallowed (the script's last command
+# still exits 0) and the job reports success with a broken/incomplete ISO.
+set -euo pipefail
 
 dir=$(dirname $(realpath $0))
 in=$1
@@ -8,18 +15,18 @@ in=$1
 if [ $UID != 0 ];
 then
 	echo "Must be run with root privileges, for example with sudo"
-	exit
+	exit 1
 fi
 
 if [ $# -lt 1 ];
 then
 	echo "USAGE: sudo $0 SOURCE_ISO"
-	exit
+	exit 1
 fi
 
 if [ -d $dir/out ];
 then
-    rm $dir/out/* 2>/dev/null
+    rm -f $dir/out/*
 else
     mkdir $dir/out
 fi
@@ -36,7 +43,7 @@ out=$(echo "${in//ubuntu/kramden}")
 out=$(echo "${out//desktop/$date}")
 
 echo "Fetching local debian packages"
-rm $dir/debs/*
+rm -f $dir/debs/*
 wget -O $dir/debs/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 cd $dir/debs
