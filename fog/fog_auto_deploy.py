@@ -387,12 +387,12 @@ def fog_orchestration(image_name):
     else:
         print(f"[*] Registering image '{image_name}' in FOG...")
         # imageTypeID 2 = "Multiple Partition Image - Single Disk (Not
-        # Resizable)". The kramden build has no UEFI firmware in its build VM
+        # Resizable)". The kramden build VM boots under OVMF/UEFI
         # (noble/autoinstall.sh), so curtin's default "direct" layout creates
-        # a GPT disk with a tiny bios_grub partition (where GRUB actually
-        # lives) plus the ext4 root partition. imageTypeID 1 ("Single
-        # Partition") only captures one partition — it drops bios_grub and
-        # the deployed disk has no bootloader. osID 50 = Linux.
+        # a GPT disk with a FAT32 EFI System Partition (holding grub-efi/shim)
+        # plus the ext4 root partition. imageTypeID 1 ("Single Partition")
+        # only captures one partition — it drops the ESP and the deployed
+        # disk has no bootloader UEFI firmware can find. osID 50 = Linux.
         img_payload = {
             "name": image_name,
             "path": image_name.replace(".", "_"),
