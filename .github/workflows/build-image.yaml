@@ -9,6 +9,11 @@ on:
 jobs:
   build-images:
     runs-on: ubuntu-24.04
+    # A stalled apt mirror or hung install VM has previously wedged this job
+    # for the full default 6h Actions timeout (e.g. runs on 2026-07-25 and
+    # 2026-08-19). Cap it well above the normal ~55-60m runtime so a stall
+    # fails fast instead of silently burning hours of runner time.
+    timeout-minutes: 90
     steps:
       - name: release-vars
         id: release-vars
@@ -110,7 +115,7 @@ jobs:
               f.write(content)
           PATCH
           sudo python3 -m pip install . --break-system-packages
-          sudo apt update --fix-missing
+          sudo apt -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update --fix-missing
           sudo apt install -y xorriso squashfs-tools python3-debian mount
       - name: Fetch base ISO
         id: download
@@ -144,7 +149,7 @@ jobs:
           retention-days: 15
       - name: Build Kramden Image
         run: |
-          sudo apt update --fix-missing
+          sudo apt -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update --fix-missing
           sudo apt install -y qemu-system-x86 qemu-utils zstd coreutils ovmf
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
