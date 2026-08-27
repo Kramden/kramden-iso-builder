@@ -1,0 +1,52 @@
+name: Build Interactive Install ISO
+
+on:
+  schedule:
+    # Every Monday at 2am
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+jobs:
+  build-interactive-install-iso:
+    runs-on: ubuntu-24.04
+    # Schedule always runs against the default branch, but workflow_dispatch
+    # can be triggered against any branch/ref that has this file -- only
+    # build off noble.
+    if: github.ref == 'refs/heads/noble'
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jlumbroso/free-disk-space@3e0187054f9c4bc1f55a743792872df36b2d88e0
+        with:
+          tool-cache: true
+      - name: Download latest kramden-iso artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id=$(gh run list --repo ${{ github.repository }} --workflow=build-image.yaml --branch=noble --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$run_id" ]; then
+            echo "No successful build-image.yaml run found on noble" >&2
+            exit 1
+          fi
+          echo "Downloading kramden-iso artifact from run $run_id"
+          gh run download "$run_id" --repo ${{ github.repository }} --name kramden-iso --dir "${{ github.workspace }}/download"
+      - name: Setup livefs-editor
+        run: |
+          cd noble/manual
+          ./setup-livefs-editor-venv.sh
+      - name: Replace autoinstall.yaml with interactive-network version
+        id: build
+        run: |
+          cd noble/manual
+          source_iso=$(ls "${{ github.workspace }}"/download/kramden*.iso | head -n1)
+          output_iso="${{ github.workspace }}/$(basename "$source_iso" .iso)-interactive-install.iso"
+          sudo ./replace-autoinstall.sh "$source_iso" "$output_iso"
+          echo "iso=$output_iso" >> "$GITHUB_OUTPUT"
+      - name: Save ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: kramden-interactive-install-iso
+          path: ${{ steps.build.outputs.iso }}
+          retention-days: 15

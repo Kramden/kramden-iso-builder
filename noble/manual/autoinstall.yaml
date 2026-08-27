@@ -1,0 +1,106 @@
+interactive-sections:
+- network
+identity:
+  hostname: ubuntu-desktop
+  password: $y$j9T$BHNvj/t/z5eIfjv0EpQd6.$A7RVWbJXS5SC11eXefK08.sW8Kemb6nwasPnFTru6m2
+  realname: Owner
+  username: owner
+apt:
+  preserve_sources_list: false
+  mirror-selection:
+    primary:
+      - country-mirror
+      - uri: "http://us.archive.ubuntu.com/ubuntu"
+      - uri: "http://archive.ubuntu.com/ubuntu"
+    geoip: true
+    fallback: abort
+keyboard:
+  layout: us
+  toggle: null
+  variant: ''
+locale: en_US.UTF-8
+refresh-installer:
+  update: false
+  channel: stable/ubuntu-24.04
+source:
+  id: ubuntu-desktop-minimal
+  search_drivers: false
+codecs:
+  install: true
+drivers:
+  install: true
+kernel:
+  flavor: hwe
+packages:
+- kramden-desktop
+- kramden-device
+- kramden-provision
+- kramden-overrides
+- google-chrome-stable
+#- linux-oem-24.04b
+snaps:
+- name: core18
+  channel: stable
+- name: core20
+  channel: stable
+- name: core22
+  channel: stable
+- name: core24
+  channel: stable
+- name: gnome-3-38-2004
+  channel: stable/ubuntu-24.04
+- name: gnome-42-2204
+  channel: stable/ubuntu-24.04
+- name: gnome-46-2404
+  channel: stable/ubuntu-24.04
+- name: mesa-2404
+  channel: stable/ubuntu-24.04
+- name: frogsquash
+  channel: stable
+- name: gnome-2048
+  channel: stable
+- name: gnome-chess
+  channel: stable
+- name: gnome-nibbles
+  channel: stable
+- name: gnome-weather
+  channel: stable
+- name: iagno
+  channel: stable
+- name: mc-installer
+  channel: stable
+- name: quadrapassel
+  channel: stable
+- name: screen-test
+  channel: stable
+- name: spotify
+  channel: stable
+- name: vlc
+  channel: stable
+- name: zoom-client
+  channel: stable
+storage:
+  layout:
+    name: direct
+    match:
+      size: largest
+ssh:
+  allow-pw: true
+  authorized-keys: []
+  install-server: false
+timezone: America/New_York
+updates: all
+late-commands:
+- 'touch /target/etc/hostname'
+- 'echo "%sudo ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/nopw'
+- 'chmod 440 /target/etc/sudoers.d/nopw'
+- 'sed -i.bak -e "s|enabled=1$|enabled=0|g" /target/etc/default/apport'
+- 'rm -f /target/etc/apt/trusted.gpg.d/custom-iso-key.gpg'
+- 'cp /cdrom/kramden-iso /target/var/log/installer/kramden-iso'
+- 'chmod a+rx /target/var/log/installer'
+- 'chmod 644 /target/etc/landscape/client.conf'
+- 'echo kernel.apparmor_restrict_unprivileged_unconfined=0 > /target/etc/sysctl.d/99-kramden-local.conf'
+- 'echo kernel.apparmor_restrict_unprivileged_userns=0 >> /target/etc/sysctl.d/99-kramden-local.conf'
+- curtin in-target --target=/target -- /usr/bin/systemctl enable kramden-seeded.service
+- '/sbin/poweroff'
+version: 1
