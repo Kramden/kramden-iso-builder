@@ -123,6 +123,6 @@ late-commands:
 - 'chmod 644 /target/etc/landscape/client.conf'
 - 'echo kernel.apparmor_restrict_unprivileged_unconfined=0 > /target/etc/sysctl.d/99-kramden-local.conf'
 - 'echo kernel.apparmor_restrict_unprivileged_userns=0 >> /target/etc/sysctl.d/99-kramden-local.conf'
-- curtin in-target --target=/target -- /usr/bin/systemctl enable kramden-seeded.service
+- curtin in-target --target=/target -- bash -c 'systemctl enable kramden-seeded.service || true'
 - '/sbin/poweroff'
 version: 1
