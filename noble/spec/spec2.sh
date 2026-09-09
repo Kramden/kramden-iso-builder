@@ -26,6 +26,16 @@ if [ -z "$SORTLY_API_KEY" ]; then
     exit 1
 fi
 
+if [ -z "$SORTLY_FOLDER_LOOKUP_API_KEY" ]; then
+    echo "ERROR: SORTLY_FOLDER_LOOKUP_API_KEY is not set!"
+    exit 1
+fi
+
+if [ -z "$SORTLY_FOLDER_LOOKUP_API_URL" ]; then
+    echo "ERROR: SORTLY_FOLDER_LOOKUP_API_URL is not set!"
+    exit 1
+fi
+
 if [ -z "$KRAMDEN_SPEC_WIFI" ]; then
     echo "ERROR: KRAMDEN_SPEC_WIFI is not set!"
     exit 1

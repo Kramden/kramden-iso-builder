@@ -35,3 +35,5 @@ chmod a+x new/minimal.standard.live.custom/etc/rc.local
 # base 'minimal' layer, not in this custom overlay.
 mkdir -p new/minimal.standard.live.custom/etc/environment.d
 echo "SORTLY_API_KEY=$SORTLY_API_KEY" >> new/minimal.standard.live.custom/etc/environment
+echo "SORTLY_FOLDER_LOOKUP_API_URL=$SORTLY_FOLDER_LOOKUP_API_URL" >> new/minimal.standard.live.custom/etc/environment
+echo "SORTLY_FOLDER_LOOKUP_API_KEY=$SORTLY_FOLDER_LOOKUP_API_KEY" >> new/minimal.standard.live.custom/etc/environment
