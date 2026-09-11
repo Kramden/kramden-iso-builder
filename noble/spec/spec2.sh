@@ -31,8 +31,8 @@ if [ -z "$SORTLY_FOLDER_LOOKUP_API_KEY" ]; then
     exit 1
 fi
 
-if [ -z "$SORTLY_FOLDER_LOOKUP_API_URL" ]; then
-    echo "ERROR: SORTLY_FOLDER_LOOKUP_API_URL is not set!"
+if [ -z "$SORTLY_FOLDER_LOOKUP_URL" ]; then
+    echo "ERROR: SORTLY_FOLDER_LOOKUP_URL is not set!"
     exit 1
 fi
 
