@@ -36,7 +36,7 @@ jobs:
         env:                                                                      
           SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}
           SORTLY_FOLDER_LOOKUP_API_KEY: ${{ secrets.SORTLY_FOLDER_API_KEY }}
-          SORTLY_FOLDER_LOOKUP_API_URL: ${{ secrets.SORTLY_FOLDER_LOOKUP_URL }}
+          SORTLY_FOLDER_LOOKUP_URL: ${{ secrets.SORTLY_FOLDER_LOOKUP_URL }}
           KRAMDEN_SPEC_WIFI: ${{ secrets.KRAMDEN_SPEC_WIFI }}
         run: |
           sudo apt install -y ubuntu-dev-tools wget
