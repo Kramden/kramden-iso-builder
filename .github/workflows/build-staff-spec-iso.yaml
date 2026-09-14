@@ -1,0 +1,45 @@
+name: Build Kramden Staff Spec ISO
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: jlumbroso/free-disk-space@3e0187054f9c4bc1f55a743792872df36b2d88e0
+        with:
+          tool-cache: true
+      - name: Download latest Kramden Spec ISO
+        uses: dawidd6/action-download-artifact@d63b86af1b34672e53c440b1b83979861906bad7 # v24
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build-spec-iso.yaml
+          workflow_conclusion: success
+          name: kramden-spec-iso
+          path: ${{ github.workspace }}
+      - name: install livefs-editor
+        run: |
+          git clone https://github.com/mwhudson/livefs-editor
+          cd livefs-editor/
+          sudo python3 -m pip install . --break-system-packages
+          sudo apt update --fix-missing
+          sudo apt install -y xorriso squashfs-tools python3-debian mount
+      - name: Append kramden-staff grub cmdline arg
+        id: build-iso
+        run: |
+          in=$(ls ${{ github.workspace }}/kramden-spec*amd64.iso | head -n1)
+          out=$(echo "$in" | sed 's/kramden-spec/kramden-staff-spec/')
+          echo "Editing $in -> $out"
+          sudo livefs-edit "$in" "$out" --add-cmdline-arg kramden-staff
+          echo "iso_path=$out" >> "$GITHUB_OUTPUT"
+      - name: Save ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: kramden-staff-spec-iso
+          path: ${{ steps.build-iso.outputs.iso_path }}
+          retention-days: 5

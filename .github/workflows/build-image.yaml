@@ -126,8 +126,10 @@ jobs:
           filename: ${{ steps.release-vars.outputs.FILENAME }}
       - name: Build Kramden ISO
         id: build-iso
-        env:                                                                      
-          SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}            
+        env:
+          SORTLY_API_KEY: ${{ secrets.SORTLY_API_KEY }}
+          SORTLY_FOLDER_LOOKUP_API_KEY: ${{ secrets.SORTLY_FOLDER_API_KEY }}
+          SORTLY_FOLDER_LOOKUP_URL: ${{ secrets.SORTLY_FOLDER_LOOKUP_URL }}
         run: |
           sudo apt install -y ubuntu-dev-tools wget
           cd resolute
@@ -136,7 +138,10 @@ jobs:
           ls -ltrh ${{ steps.download.outputs.filepath }} || true
           echo "list dir"
           ls -ltrh ${{ github.workspace }} || true
-          sed "s|@@SORTLY_API_KEY@@|$SORTLY_API_KEY|g" autoinstall.yaml.in > autoinstall.yaml
+          sed -e "s|@@SORTLY_API_KEY@@|$SORTLY_API_KEY|g" \
+              -e "s|@@SORTLY_FOLDER_LOOKUP_API_KEY@@|$SORTLY_FOLDER_LOOKUP_API_KEY|g" \
+              -e "s|@@SORTLY_FOLDER_LOOKUP_URL@@|$SORTLY_FOLDER_LOOKUP_URL|g" \
+              autoinstall.yaml.in > autoinstall.yaml
           sudo ./kramden.sh ${{ steps.download.outputs.filepath }}
           echo RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))>> "$GITHUB_OUTPUT"
           echo $(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
