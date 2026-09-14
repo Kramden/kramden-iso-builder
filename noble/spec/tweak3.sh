@@ -36,4 +36,4 @@ chmod a+x new/minimal.standard.live.custom/etc/rc.local
 mkdir -p new/minimal.standard.live.custom/etc/environment.d
 echo "SORTLY_API_KEY=$SORTLY_API_KEY" >> new/minimal.standard.live.custom/etc/environment
 echo "SORTLY_FOLDER_LOOKUP_URL=$SORTLY_FOLDER_LOOKUP_URL" >> new/minimal.standard.live.custom/etc/environment
-echo "SORTLY_FOLDER_LOOKUP_API_KEY=$SORTLY_FOLDER_LOOKUP_API_KEY" >> new/minimal.standard.live.custom/etc/environment
+echo "SORTLY_FOLDER_LOOKUP_API_KEY=\"$SORTLY_FOLDER_LOOKUP_API_KEY\"" >> new/minimal.standard.live.custom/etc/environment
