@@ -34,3 +34,13 @@ mkdir -p new/minimal.standard.live.custom/etc/environment.d
 echo "SORTLY_API_KEY=$SORTLY_API_KEY" >> new/minimal.standard.live.custom/etc/environment
 echo "SORTLY_FOLDER_LOOKUP_URL=$SORTLY_FOLDER_LOOKUP_URL" >> new/minimal.standard.live.custom/etc/environment
 echo "SORTLY_FOLDER_LOOKUP_API_KEY=\"$SORTLY_FOLDER_LOOKUP_API_KEY\"" >> new/minimal.standard.live.custom/etc/environment
+# kramden-spec is launched via XDG autostart, which systemd-xdg-autostart-generator
+# turns into a systemd --user unit. Those units get their environment from
+# /etc/environment.d, not from /etc/environment (which is PAM-only and only reaches
+# login-shell/session processes) — so the vars must also be dropped here or the
+# autostarted app never sees them even though a manually sourced terminal does.
+cat << EOF > new/minimal.standard.live.custom/etc/environment.d/50-kramden-spec.conf
+SORTLY_API_KEY="$SORTLY_API_KEY"
+SORTLY_FOLDER_LOOKUP_URL="$SORTLY_FOLDER_LOOKUP_URL"
+SORTLY_FOLDER_LOOKUP_API_KEY="$SORTLY_FOLDER_LOOKUP_API_KEY"
+EOF
