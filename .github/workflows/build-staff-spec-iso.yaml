@@ -37,6 +37,14 @@ jobs:
           echo "Editing $in -> $out"
           sudo livefs-edit "$in" "$out" --add-cmdline-arg kramden-staff
           echo "iso_path=$out" >> "$GITHUB_OUTPUT"
+      - name: Rename grub menu entry to Kramden Staff Spec
+        run: |
+          out="${{ steps.build-iso.outputs.iso_path }}"
+          tmpdir=$(mktemp -d)
+          xorriso -indev "$out" -osirrox on -extract boot/grub/grub.cfg "$tmpdir/grub.cfg"
+          sed -i 's/Kramden Spec/Kramden Staff Spec/g' "$tmpdir/grub.cfg"
+          sudo xorriso -indev "$out" -outdev "$out.new" -boot_image any replay -update "$tmpdir/grub.cfg" boot/grub/grub.cfg -commit
+          sudo mv "$out.new" "$out"
       - name: Save ISO
         uses: actions/upload-artifact@v4
         with:
