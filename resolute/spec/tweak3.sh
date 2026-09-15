@@ -33,7 +33,13 @@ chmod a+x new/minimal.standard.live.custom/etc/rc.local
 mkdir -p new/minimal.standard.live.custom/etc/environment.d
 echo "SORTLY_API_KEY=$SORTLY_API_KEY" >> new/minimal.standard.live.custom/etc/environment
 echo "SORTLY_FOLDER_LOOKUP_URL=$SORTLY_FOLDER_LOOKUP_URL" >> new/minimal.standard.live.custom/etc/environment
-echo "SORTLY_FOLDER_LOOKUP_API_KEY=\"$SORTLY_FOLDER_LOOKUP_API_KEY\"" >> new/minimal.standard.live.custom/etc/environment
+# SORTLY_FOLDER_LOOKUP_API_KEY is deliberately NOT written to /etc/environment:
+# PAM's pam_env parser (_parse_env_file in pam_env.c) scans each line for an
+# unescaped '#' and truncates the value there *before* it even looks at
+# surrounding quotes, so a key like "QN#xxxx" gets chopped down to "QN" with
+# no way to escape the '#'. /etc/environment.d below uses systemd's parser,
+# which keeps '#' inside quotes intact, so that's the only place this key
+# is safe to store.
 # kramden-spec is launched via XDG autostart, which systemd-xdg-autostart-generator
 # turns into a systemd --user unit. Those units get their environment from
 # /etc/environment.d, not from /etc/environment (which is PAM-only and only reaches
