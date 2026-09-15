@@ -23,6 +23,9 @@ EOF
 
 printf '#!/bin/bash\nnmcli device wifi connect "Kramden Speccing" password "%s" name kramden-speccing 2>/dev/null || true\n' "$KRAMDEN_SPEC_WIFI" > new/minimal.standard.live.custom/usr/bin/wifi.sh
 printf 'nmcli device wifi connect "Kramden_Guest" password "Kramden1!" name kramden-guest2 2>/dev/null || true\n' >> new/minimal.standard.live.custom/usr/bin/wifi.sh
+if [ -n "$SECONDARY_WIFI_SSID" ]; then
+    printf 'nmcli device wifi connect "%s" password "%s" name kramden-secondary 2>/dev/null || true\n' "$SECONDARY_WIFI_SSID" "$SECONDARY_WIFI_PASSWORD" >> new/minimal.standard.live.custom/usr/bin/wifi.sh
+fi
 chmod a+x new/minimal.standard.live.custom/usr/bin/wifi.sh
 
 cat << 'EOF' > new/minimal.standard.live.custom/etc/rc.local

@@ -2,6 +2,15 @@ name: Build Kramden Spec ISO
 
 on:
   workflow_dispatch:
+    inputs:
+      secondary_wifi_ssid:
+        description: 'Optional: SSID for an additional wifi network to inject'
+        required: false
+        type: string
+      secondary_wifi_password:
+        description: 'Optional: password for the additional wifi network'
+        required: false
+        type: string
 
 jobs:
   build-image:
@@ -38,6 +47,8 @@ jobs:
           SORTLY_FOLDER_LOOKUP_API_KEY: ${{ secrets.SORTLY_FOLDER_API_KEY }}
           SORTLY_FOLDER_LOOKUP_URL: ${{ secrets.SORTLY_FOLDER_LOOKUP_URL }}
           KRAMDEN_SPEC_WIFI: ${{ secrets.KRAMDEN_SPEC_WIFI }}
+          SECONDARY_WIFI_SSID: ${{ inputs.secondary_wifi_ssid }}
+          SECONDARY_WIFI_PASSWORD: ${{ inputs.secondary_wifi_password }}
         run: |
           sudo apt install -y ubuntu-dev-tools wget
           cd noble/spec
