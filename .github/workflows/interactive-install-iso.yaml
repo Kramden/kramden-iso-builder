@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     # Schedule always runs against the default branch, but workflow_dispatch
     # can be triggered against any branch/ref that has this file -- only
-    # build off noble.
-    if: github.ref == 'refs/heads/noble'
+    # build off resolute.
+    if: github.ref == 'refs/heads/resolute'
     permissions:
       actions: read
       contents: read
@@ -25,21 +25,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          run_id=$(gh run list --repo ${{ github.repository }} --workflow=build-image.yaml --branch=noble --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+          run_id=$(gh run list --repo ${{ github.repository }} --workflow=build-image.yaml --branch=resolute --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
           if [ -z "$run_id" ]; then
-            echo "No successful build-image.yaml run found on noble" >&2
+            echo "No successful build-image.yaml run found on resolute" >&2
             exit 1
           fi
           echo "Downloading kramden-iso artifact from run $run_id"
           gh run download "$run_id" --repo ${{ github.repository }} --name kramden-iso --dir "${{ github.workspace }}/download"
       - name: Setup livefs-editor
         run: |
-          cd noble/manual
+          cd resolute/manual
           ./setup-livefs-editor-venv.sh
       - name: Replace autoinstall.yaml with interactive-network version
         id: build
         run: |
-          cd noble/manual
+          cd resolute/manual
           source_iso=$(ls "${{ github.workspace }}"/download/kramden*.iso | head -n1)
           output_iso="${{ github.workspace }}/$(basename "$source_iso" .iso)-interactive-install.iso"
           sudo ./replace-autoinstall.sh "$source_iso" "$output_iso"
