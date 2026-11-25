@@ -70,9 +70,21 @@ jobs:
           path: ${{ github.workspace }}/kramden*.iso
           retention-days: 15
       - name: Build Kramden Image
+        # A healthy install + first boot takes ~15 minutes. Fail fast instead
+        # of hanging until the 6h job limit if the VM ever stalls again.
+        timeout-minutes: 90
         run: |
           sudo apt update --fix-missing
-          sudo apt install -y qemu-system-x86 qemu-utils zstd coreutils ovmf
+          sudo apt install -y qemu-system-x86 qemu-utils zstd coreutils
+          # Pin OVMF to 2024.02-2ubuntu0.9. With 2024.02-2ubuntu0.10 (noble
+          # security update, Oct 2026) the automated install never completes:
+          # GRUB loads from the ISO and then the VM produces no further
+          # output until the job is cancelled. Every run since that update
+          # has hung; the last good run used 0.9 with everything else identical.
+          # Drop this pin once a fixed OVMF lands in noble-updates.
+          wget -q -O /tmp/ovmf.deb https://launchpad.net/ubuntu/+archive/primary/+files/ovmf_2024.02-2ubuntu0.9_all.deb
+          sudo apt install -y --allow-downgrades /tmp/ovmf.deb
+          sudo apt-mark hold ovmf
           echo "list ISO"
           ls -ltrh ${{ github.workspace }} || true
           export RELEASE_NAME=$(basename $(ls -t $PWD/kramden*amd64.iso | head -n1 | sed 's/.iso//'g))
